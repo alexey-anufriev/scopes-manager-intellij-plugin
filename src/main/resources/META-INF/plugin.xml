@@ -1,0 +1,18 @@
+<idea-plugin>
+    <id>com.alexey-anufriev.scopes-manager-intellij-plugin</id>
+    <name>Scopes Manager</name>
+    <vendor email="contact@alexey-anufriev.com" url="https://alexey-anufriev.com">Alexey Anufriev</vendor>
+
+    <description><![CDATA[
+    Plugin for handy scopes management of the project resources.
+    Any file or folder can be assigned to a scope (or unassigned) right from the tree view.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+    </extensions>
+
+    <actions>
+    </actions>
+</idea-plugin>
