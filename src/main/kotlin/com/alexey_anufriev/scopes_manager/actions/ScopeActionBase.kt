@@ -76,8 +76,8 @@ abstract class ScopeActionBase(
         }
 
         val newScopeContent = getNewScopeContent(project, selectedFile, currentScopeContent, selectedPackageContent)
-        val scopes = unchangedScopes.toTypedArray()
-        scopes.plus(NamedScope(templatePresentation.text, templatePresentation.icon, newScopeContent))
+        val updatedScope = NamedScope(templatePresentation.text, templatePresentation.icon, newScopeContent)
+        val scopes = unchangedScopes.toTypedArray().plus(updatedScope)
         scopesHolder.scopes = scopes
 
         FileEditorManagerEx.getInstanceEx(project).updateFilePresentation(selectedFile)
