@@ -28,7 +28,7 @@ class AddToScopeAction(
             // if the scope is empty then add everything to it
             newScopeContent = selectedPackageContent as PackageSetBase
         } else if (currentScopeContent is CompoundPackageSet) {
-            // as a fast-fix try to remove exclusion (if present) of the content that must be added
+            // as a fast-fix try to remove (if present) exclusion (starts with `!`) of the content that must be added
             val remainingPackages = excludePackage(currentScopeContent, "!" + selectedPackageContent.text)
             newScopeContent = UnionPackageSet.create(*remainingPackages) as PackageSetBase
         }
