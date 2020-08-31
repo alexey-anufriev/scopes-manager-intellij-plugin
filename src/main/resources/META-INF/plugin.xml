@@ -11,8 +11,36 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.alexey_anufriev.scopes_manager.ScopesManagerInitializer" />
     </extensions>
 
     <actions>
+        <action id="com.alexey-anufriev.scopes-manager.PreSeparator"
+                class="com.intellij.openapi.actionSystem.Separator">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
+        </action>
+
+        <group id="com.alexey-anufriev.scopes-manager.AddToScopeActionGroup"
+               text="Add to Scope" icon="AllIcons.General.Add" popup="true"
+               class="com.alexey_anufriev.scopes_manager.actions.add.AddToScopeActionsGroup">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
+        </group>
+
+        <group id="com.alexey-anufriev.scopes-manager.RemoveFromScopeActionGroup"
+               text="Remove from Scope" icon="AllIcons.General.Remove" popup="true"
+               class="com.alexey_anufriev.scopes_manager.actions.remove.RemoveFromScopeActionsGroup">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
+        </group>
+
+        <group id="com.alexey-anufriev.scopes-manager.SettingsActionGroup"
+               text="Scopes Settings" icon="AllIcons.General.Settings" popup="true"
+               class="com.alexey_anufriev.scopes_manager.actions.settings.ScopeSettingsActionsGroup">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
+        </group>
+
+        <action id="com.alexey-anufriev.scopes-manager.PostSeparator"
+                class="com.intellij.openapi.actionSystem.Separator">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
+        </action>
     </actions>
 </idea-plugin>
