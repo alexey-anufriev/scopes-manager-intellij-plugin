@@ -37,9 +37,6 @@ abstract class ScopeGroupActionBase : DefaultActionGroup() {
         }
     }
 
-    /**
-     * Defines nested items of the action group
-     */
     override fun getChildren(event: AnActionEvent?): Array<AnAction> {
         if (event == null) {
             return emptyArray()
