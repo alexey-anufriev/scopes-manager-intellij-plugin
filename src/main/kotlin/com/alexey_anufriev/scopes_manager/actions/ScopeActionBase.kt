@@ -65,17 +65,17 @@ abstract class ScopeActionBase(
 
         selectedNode.setParent(ModuleNode(module, null))
 
-        val selectedPackageContent = if (selectedFile.isDirectory) {
+        val selectedContent = if (selectedFile.isDirectory) {
             patternProvider.createPackageSet(selectedNode, true)
         } else {
             patternProvider.createPackageSet(selectedNode, false)
         }
 
-        if (selectedPackageContent == null) {
+        if (selectedContent == null) {
             return
         }
 
-        val newScopeContent = getNewScopeContent(project, selectedFile, currentScopeContent, selectedPackageContent)
+        val newScopeContent = getNewScopeContent(project, selectedFile, currentScopeContent, selectedContent)
         val updatedScope = NamedScope(templatePresentation.text, templatePresentation.icon, newScopeContent)
         val scopes = unchangedScopes.toTypedArray().plus(updatedScope)
         scopesHolder.scopes = scopes
@@ -90,7 +90,7 @@ abstract class ScopeActionBase(
         project: Project,
         selectedFile: VirtualFile,
         currentScopeContent: PackageSetBase?,
-        selectedPackageContent: PackageSet
+        selectedContent: PackageSet
     ): PackageSetBase
 
     protected abstract fun skipAction(
