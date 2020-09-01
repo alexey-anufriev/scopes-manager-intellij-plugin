@@ -1,76 +1,40 @@
 package com.alexey_anufriev.scopes_manager.utils
 
-import com.intellij.psi.search.scope.packageSet.CompoundPackageSet
-import com.intellij.psi.search.scope.packageSet.PackageSet
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
+import com.intellij.psi.search.scope.packageSet.InvalidPackageSet
+import com.intellij.psi.search.scope.packageSet.UnionPackageSet
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class PackageSetUtilsTest {
 
     @Test
-    fun `should exclude package root-level package`() {
-        val emptyCompoundPackage = mock<CompoundPackageSet> {
-            on { sets } doReturn emptyArray()
-        }
+    fun `should flatten compound package set after exclusion`() {
+        val firstRootPackage = InvalidPackageSet("root.pkg1")
+        val secondRootPackage = InvalidPackageSet("root.pkg2")
+        val compoundRootPackage = UnionPackageSet.create(firstRootPackage, secondRootPackage) as UnionPackageSet
 
-        val remainingNestedPackage = mock<PackageSet> {
-            on { text } doReturn "remaining.nested.pkg"
-        }
+        val modifiedPackage = PackageSetUtils.excludePackage(compoundRootPackage, "root.pkg1")
 
-        val compoundPackage = mock<CompoundPackageSet> {
-            on { sets } doReturn arrayOf(remainingNestedPackage)
-        }
-
-        val excludedPackage = mock<PackageSet> {
-            on { text } doReturn "excluded.pkg"
-        }
-
-        val remainingPackage = mock<PackageSet> {
-            on { text } doReturn "remaining.pkg"
-        }
-
-        val rootPackage = mock<CompoundPackageSet> {
-            on { sets } doReturn arrayOf(emptyCompoundPackage, excludedPackage, remainingPackage, compoundPackage)
-        }
-
-        val remainingPackages = PackageSetUtils.excludePackage(rootPackage, "excluded.pkg")
-
-        assertThat(remainingPackages).hasSize(2)
-        assertThat(remainingPackages).containsOnly(remainingPackage, remainingNestedPackage)
+        assertThat(modifiedPackage is InvalidPackageSet).isTrue
+        assertThat((modifiedPackage as InvalidPackageSet).text).isEqualTo("root.pkg2")
     }
 
     @Test
-    fun `should exclude package nested package`() {
-        val emptyCompoundPackage = mock<CompoundPackageSet> {
-            on { sets } doReturn emptyArray()
-        }
+    fun `should flatten nested compound package set after exclusion`() {
+        val firstRootPackage = InvalidPackageSet("root.pkg1")
+        val secondRootPackage = InvalidPackageSet("root.pkg2")
 
-        val excludedNestedPackage = mock<PackageSet> {
-            on { text } doReturn "excluded.nested.pkg"
-        }
+        val firstSubPackage = InvalidPackageSet("root.sub.pkg1")
+        val secondSubPackage = InvalidPackageSet("root.sub.pkg2")
+        val compoundSubPackage = UnionPackageSet.create(firstSubPackage, secondSubPackage)
 
-        val remainingNestedPackage = mock<PackageSet> {
-            on { text } doReturn "remaining.nested.pkg"
-        }
+        val compoundRootPackage = UnionPackageSet
+            .create(firstRootPackage, secondRootPackage, compoundSubPackage) as UnionPackageSet
 
-        val compoundPackage = mock<CompoundPackageSet> {
-            on { sets } doReturn arrayOf(excludedNestedPackage, remainingNestedPackage)
-        }
+        val modifiedPackage = PackageSetUtils.excludePackage(compoundRootPackage, "root.sub.pkg1")
 
-        val remainingPackage = mock<PackageSet> {
-            on { text } doReturn "remaining.pkg"
-        }
-
-        val rootPackage = mock<CompoundPackageSet> {
-            on { sets } doReturn arrayOf(emptyCompoundPackage, compoundPackage, remainingPackage)
-        }
-
-        val remainingPackages = PackageSetUtils.excludePackage(rootPackage, "excluded.nested.pkg")
-
-        assertThat(remainingPackages).hasSize(2)
-        assertThat(remainingPackages).containsOnly(remainingPackage, remainingNestedPackage)
+        assertThat(modifiedPackage is UnionPackageSet).isTrue
+        assertThat((modifiedPackage as UnionPackageSet).text).isEqualTo("root.pkg1||root.pkg2||root.sub.pkg2")
     }
 
 }
