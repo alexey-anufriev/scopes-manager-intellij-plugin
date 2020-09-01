@@ -11,7 +11,6 @@ import com.intellij.psi.search.scope.packageSet.NamedScope
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
 import com.intellij.psi.search.scope.packageSet.PackageSet
 import com.intellij.psi.search.scope.packageSet.PackageSetBase
-import com.intellij.psi.search.scope.packageSet.UnionPackageSet
 
 class RemoveFromScopeAction(
     scopesHolder: NamedScopesHolder,
@@ -22,19 +21,18 @@ class RemoveFromScopeAction(
         project: Project,
         selectedFile: VirtualFile,
         currentScopeContent: PackageSetBase?,
-        selectedPackageContent: PackageSet
+        selectedContent: PackageSet
     ): PackageSetBase {
         var newScopeContent: PackageSetBase? = null
         if (currentScopeContent is CompoundPackageSet) {
             // as a fast-fix try to remove (if present) definition of the content that must be removed
-            val remainingPackages = excludePackage(currentScopeContent, selectedPackageContent.text)
-            newScopeContent = UnionPackageSet.create(*remainingPackages) as PackageSetBase
+            newScopeContent = excludePackage(currentScopeContent, selectedContent.text)
         }
 
         // if fast-fix did not help then exclude the content from the current scope
         if (newScopeContent == null || newScopeContent.contains(selectedFile, project, scopesHolder)) {
-            newScopeContent = IntersectionPackageSet
-                .create(currentScopeContent!!, ComplementPackageSet(selectedPackageContent)) as PackageSetBase
+            val notSelectedContent = ComplementPackageSet(selectedContent)
+            newScopeContent = IntersectionPackageSet.create(currentScopeContent!!, notSelectedContent) as PackageSetBase
         }
         return newScopeContent
     }

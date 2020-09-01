@@ -20,22 +20,21 @@ class AddToScopeAction(
         project: Project,
         selectedFile: VirtualFile,
         currentScopeContent: PackageSetBase?,
-        selectedPackageContent: PackageSet
+        selectedContent: PackageSet
     ): PackageSetBase {
         var newScopeContent: PackageSetBase? = null
 
         if (currentScopeContent == null) {
             // if the scope is empty then add everything to it
-            newScopeContent = selectedPackageContent as PackageSetBase
+            newScopeContent = selectedContent as PackageSetBase
         } else if (currentScopeContent is CompoundPackageSet) {
             // as a fast-fix try to remove (if present) exclusion (starts with `!`) of the content that must be added
-            val remainingPackages = excludePackage(currentScopeContent, "!" + selectedPackageContent.text)
-            newScopeContent = UnionPackageSet.create(*remainingPackages) as PackageSetBase
+            newScopeContent = excludePackage(currentScopeContent, "!" + selectedContent.text)
         }
 
         // if fast-fix did not help then join current scope with a new content
         if (newScopeContent == null || !newScopeContent.contains(selectedFile, project, scopesHolder)) {
-            newScopeContent = UnionPackageSet.create(currentScopeContent!!, selectedPackageContent) as PackageSetBase
+            newScopeContent = UnionPackageSet.create(currentScopeContent!!, selectedContent) as PackageSetBase
         }
         return newScopeContent
     }
