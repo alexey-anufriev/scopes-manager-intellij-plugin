@@ -1,6 +1,7 @@
 <idea-plugin>
     <id>com.alexey-anufriev.scopes-manager-intellij-plugin</id>
     <name>Scopes Manager</name>
+    <version>1.0.1</version>
     <vendor email="contact@alexey-anufriev.com" url="https://alexey-anufriev.com">Alexey Anufriev</vendor>
 
     <description><![CDATA[
@@ -15,6 +16,15 @@
         Scopes bring more structure and easier navigation across the project tree.
         Scopes Manager Plugin is important for handy scopes management of the project resources.
         Any file or folder can be assigned to a scope (or unassigned) right from the tree view.
+        <br/>
+        <br/>
+
+        Shortcuts:
+        <br/>
+        <ul>
+        <li>Add to Scope: Alt+S / ⌥+S</li>
+        <li>Remove from Scope: Alt+D / ⌥+D</li>
+        </ul>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -52,4 +62,9 @@
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
         </action>
     </actions>
+
+    <change-notes><![CDATA[
+        1.0.1: Unified shortcuts: Alt+S / ⌥+S (add), Alt+D / ⌥+D (remove)
+    ]]>
+    </change-notes>
 </idea-plugin>
