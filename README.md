@@ -24,11 +24,11 @@ There are two settings navigation shortcuts in this group:
 
 ### Add to Scope
 
-Shortcut: `Alt + Num+` (can be reassigned in IDEA settings)
+Shortcut: `Alt + S` / `⌥+S` (can be reassigned in IDEA settings)
 
 ### Remove from Scope
 
-Shortcut: `Alt + Num-` (can be reassigned in IDEA settings)
+Shortcut: `Alt + D` / `⌥+D` (can be reassigned in IDEA settings)
 
 ## Sample View
 
