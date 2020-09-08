@@ -1,5 +1,9 @@
 # Scopes Manager IntelliJ Plugin
 
+![JetBrains IntelliJ Plugins](https://img.shields.io/jetbrains/plugin/v/14987-scopes-manager)
+![JetBrains IntelliJ plugins](https://img.shields.io/jetbrains/plugin/d/14987-scopes-manager)
+![JetBrains IntelliJ Plugins](https://img.shields.io/jetbrains/plugin/r/rating/14987-scopes-manager)
+
 Scopes bring more structure and easier navigation across the project tree. 
 Scopes Manager Plugin is important for handy scopes management of the project resources.
 Any file or folder can be assigned to a scope (or unassigned) right from the tree view.
