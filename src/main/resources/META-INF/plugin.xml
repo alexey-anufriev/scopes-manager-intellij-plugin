@@ -1,7 +1,6 @@
 <idea-plugin>
     <id>com.alexey-anufriev.scopes-manager-intellij-plugin</id>
     <name>Scopes Manager</name>
-    <version>1.0.1</version>
     <vendor email="contact@alexey-anufriev.com" url="https://alexey-anufriev.com">Alexey Anufriev</vendor>
 
     <description><![CDATA[
@@ -64,6 +63,8 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.0.2: Minimal supported IntelliJ Platform is set to 2020.1.1
+        <br/>
         1.0.1: Unified shortcuts: Alt+S / ⌥+S (add), Alt+D / ⌥+D (remove)
     ]]>
     </change-notes>

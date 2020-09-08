@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.alexey-anufriev'
-version '1.0.1'
+version '1.0.2'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -23,7 +23,13 @@ dependencies {
 }
 
 intellij {
-    version '2020.2.1'
+    version '2020.1.1'
+}
+
+patchPluginXml {
+    version project.version
+    sinceBuild '201.7223'
+    untilBuild '202.*'
 }
 
 compileKotlin {
