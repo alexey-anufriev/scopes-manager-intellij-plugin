@@ -20,9 +20,13 @@ There are two settings navigation shortcuts in this group:
 
 #### Scopes List
 
+Navigates to Scopes Settings where scopes can be defined:
+
 ![scopes list](./docs/scopes-configuration.png)
 
 #### Scopes Colors
+
+Navigates to Colors Settings where colors can be assigned to scopes:
 
 ![scopes list](./docs/colors-configuration.png)
 
@@ -36,6 +40,4 @@ Shortcut: `Alt + D` / `⌥+D` (can be reassigned in IDEA settings)
 
 ## Sample View
 
-![legacy scope](./docs/assigned-legacy-scope.png)
-
-![legacy scope](./docs/assigned-refactoring-scope.png)
+![legacy scope](docs/assigned-scopes.png)
