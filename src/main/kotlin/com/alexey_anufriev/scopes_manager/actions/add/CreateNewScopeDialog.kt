@@ -18,7 +18,10 @@ import com.intellij.util.ui.JBUI
 import java.awt.Color
 import javax.swing.DefaultComboBoxModel
 
-class CreateNewScopeDialog(val event: AnActionEvent) : DialogWrapper(event.project, true) {
+class CreateNewScopeDialog(
+    private val event: AnActionEvent,
+    defaultScopeName: String
+) : DialogWrapper(event.project, true) {
 
     private val localScope = "Local"
     private val sharedScope = "Shared"
@@ -32,7 +35,7 @@ class CreateNewScopeDialog(val event: AnActionEvent) : DialogWrapper(event.proje
     private val availableScopes : List<String> =
         arrayOf(*localScopesManager.editableScopes, *sharedScopesManager.editableScopes).map { it.name }
 
-    var scopeName = "New Scope"
+    var scopeName = defaultScopeName
     var scopeType  = localScope
     var assignColor = true
     var assignedColor = Color.WHITE
@@ -84,7 +87,7 @@ class CreateNewScopeDialog(val event: AnActionEvent) : DialogWrapper(event.proje
         }
 
         val newScope = NamedScope(scopeName, InvalidPackageSet(""))
-        scopesManager.addScope(newScope);
+        scopesManager.addScope(newScope)
 
         if (assignColor) {
             val hexColor = ColorUtil.toHex(assignedColor)

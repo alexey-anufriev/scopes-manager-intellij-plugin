@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
+import com.intellij.tasks.TaskManager
 import java.util.stream.Stream
 
 class AddToScopeActionsGroup : ScopeGroupActionBase() {
@@ -17,17 +18,60 @@ class AddToScopeActionsGroup : ScopeGroupActionBase() {
         sharedScopesManager: NamedScopesHolder
     ): Array<AnAction> {
 
+        return arrayOf(
+            CreateNewScopeAction("Create New...", "New Scope"),
+            Separator(),
+            *getActionsForTaskManager(project, localScopesManager, sharedScopesManager),
+            Separator(),
+            *getActionsForScopes(localScopesManager, sharedScopesManager)
+        )
+    }
+
+    private fun getActionsForScopes(
+        localScopesManager: NamedScopesHolder,
+        sharedScopesManager: NamedScopesHolder
+    ): Array<AnAction> {
+
         val localScopesActions = Stream.of(*localScopesManager.editableScopes)
             .map { scope -> AddToScopeAction(localScopesManager, scope) }
 
         val sharedScopesActions = Stream.of(*sharedScopesManager.editableScopes)
             .map { scope -> AddToScopeAction(sharedScopesManager, scope) }
 
-        val actions : Array<AnAction> = Stream.concat(localScopesActions, sharedScopesActions)
+        return Stream.concat(localScopesActions, sharedScopesActions)
             .sorted(compareBy { it.templateText })
             .toArray { size -> arrayOfNulls(size) }
+    }
 
-        return arrayOf(CreateNewScopeAction(), Separator(), *actions)
+    private fun getActionsForTaskManager(
+        project: Project,
+        localScopesManager: NamedScopesHolder,
+        sharedScopesManager: NamedScopesHolder
+    ): Array<AnAction> {
+
+        val manager = TaskManager.getManager(project)
+
+        // Task Management plugin is enabled and there is more tasks other than just 'Default task'
+        if (manager != null && manager.localTasks.size > 1) {
+            val availableScopes = arrayOf(
+                *localScopesManager.editableScopes,
+                *sharedScopesManager.editableScopes
+            ).map { it.name }
+
+            return manager.localTasks.stream()
+                .filter { !availableScopes.contains(buildScopeName(it.presentableName)) }
+                .map { CreateNewScopeAction(
+                    "Create New for Task ${it.presentableName}",
+                    buildScopeName(it.presentableName))
+                }
+                .toArray { size -> arrayOfNulls(size) }
+        }
+
+        return emptyArray()
+    }
+
+    private fun buildScopeName(taskName: String): String {
+        return "Task $taskName"
     }
 
 }
