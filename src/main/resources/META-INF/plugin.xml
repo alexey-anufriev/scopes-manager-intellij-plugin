@@ -63,9 +63,12 @@
     </actions>
 
     <change-notes><![CDATA[
-        1.0.2: Minimal supported IntelliJ Platform is set to 2020.1.1
+        1.1.0: "Add to Scope" menu was extended with a new option: "Create New...".
+        It gives an easy and unified way to create new scope, configure it and assign selected resources.
         <br/>
-        1.0.1: Unified shortcuts: Alt+S / ⌥+S (add), Alt+D / ⌥+D (remove)
+        1.0.2: Minimal supported IntelliJ Platform is set to 2020.1.1.
+        <br/>
+        1.0.1: Unified shortcuts: Alt+S / ⌥+S (add), Alt+D / ⌥+D (remove).
     ]]>
     </change-notes>
 </idea-plugin>
