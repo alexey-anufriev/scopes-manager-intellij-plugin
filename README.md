@@ -34,6 +34,10 @@ Navigates to Colors Settings where colors can be assigned to scopes:
 
 Shortcut: `Alt + S` / `⌥+S` (can be reassigned in IDEA settings)
 
+The Scope can be either selected from existing ones or created new.
+Additionally, if Tasks Management plugin is enabled and used (any non-default task exist),
+then new Scopes can be created for available tasks.
+
 ### Remove from Scope
 
 Shortcut: `Alt + D` / `⌥+D` (can be reassigned in IDEA settings)
