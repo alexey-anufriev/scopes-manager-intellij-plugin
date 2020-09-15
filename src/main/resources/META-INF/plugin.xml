@@ -66,7 +66,12 @@
         1.1.0: "Add to Scope" menu was extended with a new option: "Create New...".
         It gives an easy and unified way to create new scope, configure it and assign selected resources.
         <br/>
+        If Tasks Management plugin is enabled and used (any non-default task exist),
+        then new Scopes can be created for available tasks.
+        <br/>
+        <br/>
         1.0.2: Minimal supported IntelliJ Platform is set to 2020.1.1.
+        <br/>
         <br/>
         1.0.1: Unified shortcuts: Alt+S / ⌥+S (add), Alt+D / ⌥+D (remove).
     ]]>
