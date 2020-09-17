@@ -63,6 +63,8 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.1.1: Excluded closed tasks from the candidates list for new scopes.
+        <br/>
         1.1.0: "Add to Scope" menu was extended with a new option: "Create New...".
         It gives an easy and unified way to create new scope, configure it and assign selected resources.
         <br/>
