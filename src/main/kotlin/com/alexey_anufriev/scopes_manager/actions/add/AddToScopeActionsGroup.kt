@@ -49,16 +49,17 @@ class AddToScopeActionsGroup : ScopeGroupActionBase() {
         sharedScopesManager: NamedScopesHolder
     ): Array<AnAction> {
 
-        val manager = TaskManager.getManager(project)
+        val taskManager = TaskManager.getManager(project)
 
         // Task Management plugin is enabled and there is more tasks other than just 'Default task'
-        if (manager != null && manager.localTasks.size > 1) {
+        if (taskManager != null && taskManager.localTasks.size > 1) {
             val availableScopes = arrayOf(
                 *localScopesManager.editableScopes,
                 *sharedScopesManager.editableScopes
             ).map { it.name }
 
-            return manager.localTasks.stream()
+            return taskManager.localTasks.stream()
+                .filter { !taskManager.isLocallyClosed(it) }
                 .filter { !availableScopes.contains(buildScopeName(it.presentableName)) }
                 .map { CreateNewScopeAction(
                     "Create New for Task ${it.presentableName}",
