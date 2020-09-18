@@ -6,7 +6,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
+import com.intellij.tasks.LocalTask
 import com.intellij.tasks.TaskManager
+import com.intellij.tasks.impl.TaskManagerImpl
 import java.util.stream.Stream
 
 class AddToScopeActionsGroup : ScopeGroupActionBase() {
@@ -58,17 +60,22 @@ class AddToScopeActionsGroup : ScopeGroupActionBase() {
                 *sharedScopesManager.editableScopes
             ).map { it.name }
 
-            return taskManager.localTasks.stream()
-                .filter { !taskManager.isLocallyClosed(it) }
+            return taskManager.getLocalTasks(false).stream()
                 .filter { !availableScopes.contains(buildScopeName(it.presentableName)) }
-                .map { CreateNewScopeAction(
-                    "Create New for Task ${it.presentableName}",
-                    buildScopeName(it.presentableName))
-                }
+                .sorted(TaskManagerImpl.TASK_UPDATE_COMPARATOR)
+                .sorted(compareByDescending { it.isActive })
+                .map { createActionForTask(it) }
                 .toArray { size -> arrayOfNulls(size) }
         }
 
         return emptyArray()
+    }
+
+    private fun createActionForTask(task: LocalTask): AnAction {
+        return CreateNewScopeAction(
+            "Create New for Task ${task.presentableName}",
+            buildScopeName(task.presentableName)
+        )
     }
 
     private fun buildScopeName(taskName: String): String {
