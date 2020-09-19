@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Comparing
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
 import com.intellij.tasks.LocalTask
 import com.intellij.tasks.TaskManager
@@ -53,8 +54,7 @@ class AddToScopeActionsGroup : ScopeGroupActionBase() {
 
         val taskManager = TaskManager.getManager(project)
 
-        // Task Management plugin is enabled and there is more tasks other than just 'Default task'
-        if (taskManager != null && taskManager.localTasks.size > 1) {
+        if (taskManager != null && isTaskManagerInUse(taskManager)) {
             val availableScopes = arrayOf(
                 *localScopesManager.editableScopes,
                 *sharedScopesManager.editableScopes
@@ -80,6 +80,11 @@ class AddToScopeActionsGroup : ScopeGroupActionBase() {
 
     private fun buildScopeName(taskName: String): String {
         return "Task $taskName"
+    }
+
+    private fun isTaskManagerInUse(taskManager: TaskManager): Boolean {
+        val activeTask = taskManager.activeTask
+        return !activeTask.isDefault || !Comparing.equal(activeTask.created, activeTask.updated)
     }
 
 }
