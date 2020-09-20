@@ -42,6 +42,12 @@ then new Scopes can be created for available tasks.
 
 Shortcut: `Alt + D` / `⌥+D` (can be reassigned in IDEA settings)
 
+Allows to remove selected resources from the scope.
+
+### Clear Scope
+
+Allows to clear the scope content completely.
+
 ## Sample View
 
 ![legacy scope](docs/assigned-scopes.png)
