@@ -50,6 +50,12 @@
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
         </group>
 
+        <group id="com.alexey-anufriev.scopes-manager.ClearScopeActionGroup"
+               text="Clear Scope" icon="AllIcons.Actions.Lightning" popup="true"
+               class="com.alexey_anufriev.scopes_manager.actions.clear.ClearScopeActionGroup">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
+        </group>
+
         <group id="com.alexey-anufriev.scopes-manager.SettingsActionGroup"
                text="Scopes Settings" icon="AllIcons.General.Settings" popup="true"
                class="com.alexey_anufriev.scopes_manager.actions.settings.ScopeSettingsActionsGroup">
