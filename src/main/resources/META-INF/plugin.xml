@@ -69,7 +69,18 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.2.0: "Clear Scope" menu was added to be able to clear the scope content.
+        <br/>
+        Candidates for new scopes based on Tasks are sorted in the same way as in the Task Manager.
+        They are also visible only if the Task Manager is effectively used.
+        <br/>
+        Colors generated for the new scopes are adopted to the editor theme (dark or light).
+        <br/>
+        New Scope dialog allows to include all open files to the scope.
+        <br/>
+        <br/>
         1.1.1: Excluded closed tasks from the candidates list for new scopes.
+        <br/>
         <br/>
         1.1.0: "Add to Scope" menu was extended with a new option: "Create New...".
         It gives an easy and unified way to create new scope, configure it and assign selected resources.
