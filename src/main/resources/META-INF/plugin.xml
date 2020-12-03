@@ -69,6 +69,8 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.3.0: Support IntelliJ build 203.*.
+        <br/>
         1.2.0: "Clear Scope" menu was added to be able to clear the scope content.
         <br/>
         Candidates for new scopes based on Tasks are sorted in the same way as in the Task Manager.
