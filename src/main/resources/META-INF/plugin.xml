@@ -69,6 +69,8 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.4.0: Support IntelliJ build 211.*.
+        <br/>
         1.3.0: Support IntelliJ build 203.*.
         <br/>
         1.2.0: "Clear Scope" menu was added to be able to clear the scope content.
