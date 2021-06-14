@@ -30,7 +30,7 @@ intellij {
 patchPluginXml {
     version project.version
     sinceBuild '201.7223'
-    untilBuild '211.*'
+    untilBuild '212.*'
 }
 
 compileKotlin {
