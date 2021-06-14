@@ -28,7 +28,13 @@ abstract class ScopeGroupActionBase : DefaultActionGroup() {
 
         val fileIndex = ProjectRootManager.getInstance(project).fileIndex
 
-        val selectionContainsNoProjectFiles = Arrays.stream(event.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY))
+        val selection = event.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY)
+        if (selection == null) {
+            hideAction(event)
+            return
+        }
+
+        val selectionContainsNoProjectFiles = Arrays.stream(selection)
             .map(fileIndex::getContentRootForFile)
             .allMatch(Objects::isNull)
 
