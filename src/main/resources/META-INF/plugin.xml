@@ -69,6 +69,9 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.6.1: Set minimal IntelliJ build to 203.*.
+        <br/>
+        <br/>
         1.6.0: Support IntelliJ build 213.*.
         <br/>
         <br/>

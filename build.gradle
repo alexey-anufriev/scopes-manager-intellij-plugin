@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.alexey-anufriev'
-version '1.6.0'
+version '1.6.1'
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
@@ -29,7 +29,7 @@ intellij {
 
 patchPluginXml {
     version.set(project.version)
-    sinceBuild.set('201.7223')
+    sinceBuild.set('203.*')
     untilBuild.set('213.*')
 }
 
