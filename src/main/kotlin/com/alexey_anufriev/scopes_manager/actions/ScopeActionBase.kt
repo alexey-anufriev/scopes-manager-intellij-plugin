@@ -24,7 +24,7 @@ import java.util.stream.Stream
 abstract class ScopeActionBase(
     protected val scopesHolder: NamedScopesHolder,
     scope: NamedScope
-) : AnAction(scope.name, null, scope.icon) {
+) : AnAction(scope.scopeId, null, scope.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project!!
@@ -37,7 +37,7 @@ abstract class ScopeActionBase(
         val patternProvider = PatternDialectProvider.getInstance(ProjectPatternProvider.FILE)
 
         val unchangedScopes = Stream.of(*scopesHolder.editableScopes)
-            .filter { editableScope -> editableScope.name != templateText }
+            .filter { editableScope -> editableScope.scopeId != templateText }
             .collect(Collectors.toList())
 
         Arrays.stream(files)

@@ -35,7 +35,7 @@ class CreateNewScopeDialog(
         DependencyValidationManager.getInstance(event.project!!)
 
     private val availableScopes : List<String> =
-        arrayOf(*localScopesManager.editableScopes, *sharedScopesManager.editableScopes).map { it.name }
+        arrayOf(*localScopesManager.editableScopes, *sharedScopesManager.editableScopes).map { it.scopeId }
 
     var scopeName = defaultScopeName
     var scopeType  = localScope

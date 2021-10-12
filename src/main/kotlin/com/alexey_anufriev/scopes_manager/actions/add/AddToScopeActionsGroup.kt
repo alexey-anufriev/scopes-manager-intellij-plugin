@@ -58,7 +58,7 @@ class AddToScopeActionsGroup : ScopeGroupActionBase() {
             val availableScopes = arrayOf(
                 *localScopesManager.editableScopes,
                 *sharedScopesManager.editableScopes
-            ).map { it.name }
+            ).map { it.scopeId }
 
             return taskManager.getLocalTasks(false).stream()
                 .filter { !availableScopes.contains(buildScopeName(it.presentableName)) }

@@ -14,13 +14,13 @@ import java.util.stream.Stream
 class ClearScopeAction(
     private val scopesHolder: NamedScopesHolder,
     private val scope: NamedScope
-) : AnAction(scope.name, null, scope.icon) {
+) : AnAction(scope.scopeId, null, scope.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
-        val emptyScope = NamedScope(scope.name, scope.icon, InvalidPackageSet(""))
+        val emptyScope = NamedScope(scope.scopeId, scope.icon, InvalidPackageSet(""))
 
         val unchangedScopes = Stream.of(*scopesHolder.editableScopes)
-            .filter { editableScope -> editableScope.name != templateText }
+            .filter { editableScope -> editableScope.scopeId != templateText }
             .collect(Collectors.toList())
 
         val newScopes = unchangedScopes.toTypedArray().plus(emptyScope)
