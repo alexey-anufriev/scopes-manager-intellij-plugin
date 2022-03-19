@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '1.2.0'
-    id 'org.jetbrains.kotlin.jvm' version '1.5.31'
+    id 'org.jetbrains.intellij' version '1.4.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
 }
 
 group 'com.alexey-anufriev'
@@ -15,22 +15,22 @@ repositories {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.31"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.31"
-    testImplementation "org.assertj:assertj-core:3.21.0"
-    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.1"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.1"
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.10'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.6.10'
+    testImplementation 'org.assertj:assertj-core:3.22.0'
+    testImplementation "org.mockito.kotlin:mockito-kotlin:4.0.0"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 }
 
 intellij {
-    version.set('2021.2.2')
+    version.set('2021.3.3')
 }
 
 patchPluginXml {
     version.set(project.version)
     sinceBuild.set('203.*')
-    untilBuild.set('213.*')
+    untilBuild.set('221.*')
 }
 
 compileKotlin {
