@@ -48,3 +48,7 @@ compileTestKotlin {
 test {
     useJUnitPlatform()
 }
+
+publishPlugin {
+    token.set(System.getenv("PUBLISH_TOKEN"))
+}
