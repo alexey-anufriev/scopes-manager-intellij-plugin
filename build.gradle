@@ -1,11 +1,11 @@
 plugins {
     id 'java'
     id 'org.jetbrains.intellij' version '1.4.0'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.21'
 }
 
 group 'com.alexey-anufriev'
-version '1.6.2'
+version '1.7.0'
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
@@ -15,8 +15,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.10'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.6.10'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.21'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.6.21'
     testImplementation 'org.assertj:assertj-core:3.22.0'
     testImplementation "org.mockito.kotlin:mockito-kotlin:4.0.0"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
@@ -24,7 +24,7 @@ dependencies {
 }
 
 intellij {
-    version.set('2021.3.3')
+    version.set('2022.1')
 }
 
 patchPluginXml {

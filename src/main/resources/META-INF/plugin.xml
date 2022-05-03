@@ -69,6 +69,9 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.7.0: Switch base to IntelliJ Platform 2022.1.
+        <br/>
+        <br/>
         1.6.2: Set minimal IntelliJ build to 221.*.
         <br/>
         <br/>
