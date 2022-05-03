@@ -2,7 +2,7 @@ name: Build Plugin Snapshot
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
