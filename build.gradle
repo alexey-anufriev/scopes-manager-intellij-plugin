@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.alexey-anufriev'
-version '1.7.0'
+version '1.7.1'
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
@@ -30,7 +30,7 @@ intellij {
 patchPluginXml {
     version.set(project.version)
     sinceBuild.set('203.*')
-    untilBuild.set('221.*')
+    untilBuild.set('222.*')
 }
 
 compileKotlin {
