@@ -1,6 +1,7 @@
 package com.alexey_anufriev.scopes_manager.actions.clear
 
 import com.alexey_anufriev.scopes_manager.actions.ScopeGroupActionBase
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -30,6 +31,10 @@ class ClearScopeActionGroup : ScopeGroupActionBase() {
         return Stream.concat(localScopesActions, sharedScopesActions)
             .sorted(compareBy { it.templateText })
             .toArray { size -> arrayOfNulls(size) }
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.BGT
     }
 
     private fun isScopeNotEmpty(scope: @NotNull NamedScope): Boolean {

@@ -1,6 +1,7 @@
 package com.alexey_anufriev.scopes_manager.actions.add
 
 import com.alexey_anufriev.scopes_manager.actions.ScopeGroupActionBase
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
@@ -28,6 +29,10 @@ class AddToScopeActionsGroup : ScopeGroupActionBase() {
             Separator(),
             *getActionsForScopes(localScopesManager, sharedScopesManager)
         )
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.BGT
     }
 
     private fun getActionsForScopes(

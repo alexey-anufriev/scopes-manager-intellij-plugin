@@ -69,6 +69,9 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.8.0: Increased minimal compatible IntelliJ build to 223.* (Platform 2022.3).
+        <br/>
+        <br/>
         1.7.1: Set max compatible IntelliJ build to 222.*.
         <br/>
         <br/>
