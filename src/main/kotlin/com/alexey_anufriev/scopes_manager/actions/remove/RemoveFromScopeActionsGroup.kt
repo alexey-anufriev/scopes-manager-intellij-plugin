@@ -1,6 +1,7 @@
 package com.alexey_anufriev.scopes_manager.actions.remove
 
 import com.alexey_anufriev.scopes_manager.actions.ScopeGroupActionBase
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -27,6 +28,10 @@ class RemoveFromScopeActionsGroup : ScopeGroupActionBase() {
         return Stream.concat(assignedLocalScopes, assignedSharedScopes)
             .sorted(compareBy { it.templateText })
             .toArray { size -> arrayOfNulls(size) }
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.BGT
     }
 
     private fun mapScopesToActions(

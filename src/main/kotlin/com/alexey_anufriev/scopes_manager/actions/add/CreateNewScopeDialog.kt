@@ -1,6 +1,6 @@
 package com.alexey_anufriev.scopes_manager.actions.add
 
-import com.alexey_anufriev.scopes_manager.utils.UiUtils.colorSelector
+import com.alexey_anufriev.scopes_manager.utils.UiUtils
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
@@ -10,12 +10,15 @@ import com.intellij.packageDependencies.DependencyValidationManager
 import com.intellij.psi.search.scope.packageSet.InvalidPackageSet
 import com.intellij.psi.search.scope.packageSet.NamedScope
 import com.intellij.psi.search.scope.packageSet.NamedScopeManager
+import com.intellij.ui.ColorPanel
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.FileColorManager
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.layout.ValidationInfoBuilder
-import com.intellij.ui.layout.panel
-import com.intellij.ui.layout.selected
+import com.intellij.ui.dsl.builder.bindItem
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.bindText
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
 import com.intellij.util.ui.JBUI
 import java.awt.Color
 import javax.swing.DefaultComboBoxModel
@@ -37,11 +40,11 @@ class CreateNewScopeDialog(
     private val availableScopes : List<String> =
         arrayOf(*localScopesManager.editableScopes, *sharedScopesManager.editableScopes).map { it.scopeId }
 
-    var scopeName = defaultScopeName
-    var scopeType  = localScope
-    var assignColor = true
-    var assignedColor = Color.WHITE
-    var includeOpenFiles = false
+    private var scopeName = defaultScopeName
+    private var scopeType  = localScope
+    private var assignColor = true
+    private var assignedColor = Color.WHITE
+    private var includeOpenFiles = false
 
     init {
         title = "New Scope"
@@ -52,37 +55,35 @@ class CreateNewScopeDialog(
 
     override fun createCenterPanel() = panel {
         row {
-            cell {
-                label("Scope Name")
-            }
-            cell {
-                textField(::scopeName)
-                    .focused()
-                    .withValidationOnInput { validationScopeName(it) }
-                    .withValidationOnApply { validationScopeName(it) }
-            }
+            label("Scope Name")
+
+            textField()
+                .bindText(::scopeName)
+                .focused()
+                .validationOnInput { validationScopeName(it) }
+                .validationOnApply { validationScopeName(it) }
         }
 
         row {
-            cell {
-                label("Sharing Type")
-            }
-            cell {
-                comboBox(DefaultComboBoxModel(arrayOf(localScope, sharedScope)), ::scopeType)
-            }
+            label("Sharing Type")
+
+            comboBox(DefaultComboBoxModel(arrayOf(localScope, sharedScope))).bindItem(::scopeType)
         }
 
         row {
-            val checkBox = checkBox("Assign Color", ::assignColor)
-            cell {
-                colorSelector(::assignedColor, checkBox.selected)
-            }
+            val checkBox = checkBox("Assign Color").bindSelected(::assignColor)
+
+            cell(
+                ColorPanel().apply {
+                    selectedColor = UiUtils.getRandomColor()
+                    assignedColor = selectedColor
+                    addActionListener { assignedColor = selectedColor }
+                }
+            ).enabledIf(checkBox.selected)
         }
 
         row {
-            cell(isFullWidth = true) {
-                checkBox("Include all open files", ::includeOpenFiles)
-            }
+            checkBox("Include all open files").bindSelected(::includeOpenFiles)
         }
     }
 
@@ -117,10 +118,10 @@ class CreateNewScopeDialog(
         addToScopeAction.processFiles(project, files)
     }
 
-    private fun ValidationInfoBuilder.validationScopeName(textField: JBTextField): ValidationInfo? {
+    private fun validationScopeName(textField: JBTextField): ValidationInfo? {
         return when {
-            textField.text.isBlank() -> error("Scope name cannot be empty")
-            availableScopes.contains(textField.text) -> error("Scope with provided name already exist")
+            textField.text.isBlank() -> ValidationInfo("Scope name cannot be empty")
+            availableScopes.contains(textField.text) -> ValidationInfo("Scope with provided name already exist")
             else -> null
         }
     }
