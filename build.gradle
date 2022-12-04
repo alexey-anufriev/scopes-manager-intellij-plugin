@@ -21,12 +21,12 @@ dependencies {
 }
 
 intellij {
-    version.set('2022.3')
+    version.set('2022.2')
 }
 
 patchPluginXml {
     version.set(project.version)
-    sinceBuild.set('222.*')
+    sinceBuild.set('222')
     untilBuild.set('223.*')
 }
 
