@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.alexey-anufriev'
-version '1.8.0'
+version '1.9.0'
 
 repositories {
     mavenCentral()
@@ -40,4 +40,11 @@ test {
 
 publishPlugin {
     token.set(System.getenv("PUBLISH_TOKEN"))
+}
+
+tasks.register('runRider') {
+    intellij {
+        type.set("RD")
+    }
+    dependsOn(runIde)
 }
