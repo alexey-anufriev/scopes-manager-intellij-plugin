@@ -1,0 +1,37 @@
+<idea-plugin>
+    <actions>
+        <action id="com.alexey-anufriev.scopes-manager.PreSeparator_RD"
+                class="com.intellij.openapi.actionSystem.Separator">
+            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
+        </action>
+
+        <group id="com.alexey-anufriev.scopes-manager.AddToScopeActionGroup_RD"
+               text="Add to Scope" icon="AllIcons.General.Add" popup="true"
+               class="com.alexey_anufriev.scopes_manager.actions.add.AddToScopeActionsGroup">
+            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
+        </group>
+
+        <group id="com.alexey-anufriev.scopes-manager.RemoveFromScopeActionGroup_RD"
+               text="Remove from Scope" icon="AllIcons.General.Remove" popup="true"
+               class="com.alexey_anufriev.scopes_manager.actions.remove.RemoveFromScopeActionsGroup">
+            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
+        </group>
+
+        <group id="com.alexey-anufriev.scopes-manager.ClearScopeActionGroup_RD"
+               text="Clear Scope" icon="AllIcons.Actions.Lightning" popup="true"
+               class="com.alexey_anufriev.scopes_manager.actions.clear.ClearScopeActionGroup">
+            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
+        </group>
+
+        <group id="com.alexey-anufriev.scopes-manager.SettingsActionGroup_RD"
+               text="Scopes Settings" icon="AllIcons.General.Settings" popup="true"
+               class="com.alexey_anufriev.scopes_manager.actions.settings.ScopeSettingsActionsGroup">
+            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
+        </group>
+
+        <action id="com.alexey-anufriev.scopes-manager.PostSeparator_RD"
+                class="com.intellij.openapi.actionSystem.Separator">
+            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>

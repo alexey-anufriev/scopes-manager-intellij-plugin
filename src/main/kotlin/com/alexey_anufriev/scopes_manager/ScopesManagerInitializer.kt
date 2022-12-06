@@ -19,7 +19,17 @@ class ScopesManagerInitializer : StartupActivity {
         )
 
         activeKeymap.addShortcut(
+            "com.alexey-anufriev.scopes-manager.AddToScopeActionGroup_RD",
+            KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.ALT_DOWN_MASK), null)
+        )
+
+        activeKeymap.addShortcut(
             "com.alexey-anufriev.scopes-manager.RemoveFromScopeActionGroup",
+            KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.ALT_DOWN_MASK), null)
+        )
+
+        activeKeymap.addShortcut(
+            "com.alexey-anufriev.scopes-manager.RemoveFromScopeActionGroup_RD",
             KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.ALT_DOWN_MASK), null)
         )
     }

@@ -27,6 +27,7 @@
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends optional="true" config-file="plugin-rider.xml">com.intellij.modules.rider</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.alexey_anufriev.scopes_manager.ScopesManagerInitializer" />
@@ -36,45 +37,42 @@
         <action id="com.alexey-anufriev.scopes-manager.PreSeparator"
                 class="com.intellij.openapi.actionSystem.Separator">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
-            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
         </action>
 
         <group id="com.alexey-anufriev.scopes-manager.AddToScopeActionGroup"
                text="Add to Scope" icon="AllIcons.General.Add" popup="true"
                class="com.alexey_anufriev.scopes_manager.actions.add.AddToScopeActionsGroup">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
-            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
         </group>
 
         <group id="com.alexey-anufriev.scopes-manager.RemoveFromScopeActionGroup"
                text="Remove from Scope" icon="AllIcons.General.Remove" popup="true"
                class="com.alexey_anufriev.scopes_manager.actions.remove.RemoveFromScopeActionsGroup">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
-            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
         </group>
 
         <group id="com.alexey-anufriev.scopes-manager.ClearScopeActionGroup"
                text="Clear Scope" icon="AllIcons.Actions.Lightning" popup="true"
                class="com.alexey_anufriev.scopes_manager.actions.clear.ClearScopeActionGroup">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
-            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
         </group>
 
         <group id="com.alexey-anufriev.scopes-manager.SettingsActionGroup"
                text="Scopes Settings" icon="AllIcons.General.Settings" popup="true"
                class="com.alexey_anufriev.scopes_manager.actions.settings.ScopeSettingsActionsGroup">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
-            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
         </group>
 
         <action id="com.alexey-anufriev.scopes-manager.PostSeparator"
                 class="com.intellij.openapi.actionSystem.Separator">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
-            <add-to-group group-id="SolutionExplorerPopupMenu" anchor="last"/>
         </action>
     </actions>
 
     <change-notes><![CDATA[
+        1.9.1: Separate configs for different IntelliJ Platforms.
+        <br/>
+        <br/>
         1.9.0: Add support for Rider IDE.
         <br/>
         <br/>
