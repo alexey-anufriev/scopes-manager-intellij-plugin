@@ -70,6 +70,9 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.9.2: Set max compatible IntelliJ build to 224.*.
+        <br/>
+        <br/>
         1.9.1: Separate configs for different IntelliJ Platforms.
         <br/>
         <br/>
