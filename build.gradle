@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.alexey-anufriev'
-version '1.9.2'
+version '1.9.3'
 
 repositories {
     mavenCentral()
@@ -27,7 +27,7 @@ intellij {
 patchPluginXml {
     version.set(project.version as String)
     sinceBuild.set('222')
-    untilBuild.set('224.*')
+    untilBuild.set('231.*')
 }
 
 kotlin {
