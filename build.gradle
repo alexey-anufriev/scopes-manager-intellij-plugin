@@ -1,23 +1,23 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '1.13.1'
-    id 'org.jetbrains.kotlin.jvm' version '1.8.10'
+    id 'org.jetbrains.intellij' version '1.13.3'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.21'
 }
 
 group 'com.alexey-anufriev'
-version '1.9.3'
+version '1.9.4'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.8.10'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.8.10'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.8.21'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.8.21'
     testImplementation 'org.assertj:assertj-core:3.24.2'
-    testImplementation "org.mockito.kotlin:mockito-kotlin:4.1.0"
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    testImplementation "org.mockito.kotlin:mockito-kotlin:5.0.0"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
 }
 
 intellij {
@@ -27,7 +27,7 @@ intellij {
 patchPluginXml {
     version.set(project.version as String)
     sinceBuild.set('222')
-    untilBuild.set('231.*')
+    untilBuild.set('232.*')
 }
 
 kotlin {
