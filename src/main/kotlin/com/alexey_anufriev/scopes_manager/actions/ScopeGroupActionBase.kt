@@ -11,7 +11,6 @@ import com.intellij.packageDependencies.DependencyValidationManager
 import com.intellij.psi.search.scope.packageSet.NamedScopeManager
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
 import java.util.Arrays
-import java.util.Objects
 
 abstract class ScopeGroupActionBase : DefaultActionGroup() {
 
@@ -35,8 +34,8 @@ abstract class ScopeGroupActionBase : DefaultActionGroup() {
         }
 
         val selectionContainsNoProjectFiles = Arrays.stream(selection)
-            .map(fileIndex::getContentRootForFile)
-            .allMatch(Objects::isNull)
+            .map(fileIndex::isInContent)
+            .noneMatch { it }
 
         if (selectionContainsNoProjectFiles) {
             hideAction(event)

@@ -7,12 +7,14 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.packageDependencies.ui.DirectoryNode
 import com.intellij.packageDependencies.ui.FileNode
 import com.intellij.packageDependencies.ui.ModuleNode
 import com.intellij.packageDependencies.ui.PatternDialectProvider
 import com.intellij.packageDependencies.ui.ProjectPatternProvider
+import com.intellij.psi.search.scope.packageSet.FilePatternPackageSet
 import com.intellij.psi.search.scope.packageSet.NamedScope
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
 import com.intellij.psi.search.scope.packageSet.PackageSet
@@ -41,7 +43,7 @@ abstract class ScopeActionBase(
             .collect(Collectors.toList())
 
         Arrays.stream(files)
-            .filter { file -> projectManager.fileIndex.getContentRootForFile(file) != null }
+            .filter { file -> projectManager.fileIndex.isInContent(file) }
             .forEach { file -> performScopeAction(project, projectManager, patternProvider, unchangedScopes, file) }
 
         ProjectView.getInstance(project).refresh()
@@ -50,7 +52,7 @@ abstract class ScopeActionBase(
     private fun performScopeAction(
         project: Project,
         projectManager: ProjectRootManager,
-        patternProvider: PatternDialectProvider,
+        patternProvider: PatternDialectProvider?,
         unchangedScopes: List<NamedScope>,
         selectedFile: VirtualFile
     ) {
@@ -70,11 +72,23 @@ abstract class ScopeActionBase(
 
         selectedNode.setParent(ModuleNode(module, null))
 
-        val selectedContent = if (selectedFile.isDirectory) {
-            patternProvider.createPackageSet(selectedNode, true)
+        var selectedContent = if (selectedFile.isDirectory) {
+            patternProvider?.createPackageSet(selectedNode, true)
         } else {
-            patternProvider.createPackageSet(selectedNode, false)
+            patternProvider?.createPackageSet(selectedNode, false)
         }
+
+        // [start] support Rider
+        if (selectedContent == null) {
+            var filePattern = VfsUtilCore.getRelativePath(selectedFile, project.baseDir, '/')
+            if (filePattern != null) {
+                if (selectedFile.isDirectory) {
+                    filePattern += "/*";
+                }
+                selectedContent = FilePatternPackageSet(null, filePattern)
+            }
+        }
+        // [end] support Rider
 
         if (selectedContent == null) {
             return
