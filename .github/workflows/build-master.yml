@@ -9,6 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Clean VM
+      shell: bash
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        
     - name: Fetch Sources
       uses: actions/checkout@v3
     
