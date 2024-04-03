@@ -9,14 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Clean VM
-      shell: bash
-      run: |
-        df -h
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /usr/local/share/boost
-        df -h
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
 
     - name: Fetch Sources
       uses: actions/checkout@v3
