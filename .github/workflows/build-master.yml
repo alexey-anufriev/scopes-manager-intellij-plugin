@@ -12,14 +12,18 @@ jobs:
     - name: Clean VM
       shell: bash
       run: |
+        df -h
+        sudo rm -rf /opt/ghc
         sudo rm -rf /usr/share/dotnet
-        
+        sudo rm -rf /usr/local/share/boost
+        df -h
+
     - name: Fetch Sources
       uses: actions/checkout@v3
-    
+
     - name: Gradle Wrapper Validation
       uses: gradle/wrapper-validation-action@v1.0.5
-    
+
     - name: Setup Java
       uses: actions/setup-java@v3
       with:
@@ -36,7 +40,7 @@ jobs:
 
     - name: Run Tests
       run: ./gradlew test
-      
+
     - name: Setup Plugin Verifier IDEs Cache
       uses: actions/cache@v3
       with:
@@ -45,7 +49,7 @@ jobs:
 
     - name: Run Plugin Verification
       run: ./gradlew runPluginVerifier -Pplugin.verifier.home.dir=${{ steps.properties.outputs.pluginVerifierHomeDir }}
-      
+
     - name: Prepare Plugin Artifact
       id: artifact
       shell: bash
@@ -53,7 +57,7 @@ jobs:
         cd ${{ github.workspace }}/build/distributions
         FILENAME=`ls *.zip`
         echo "::set-output name=filename::${FILENAME:0:-4}"
-      
+
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
