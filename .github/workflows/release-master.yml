@@ -7,14 +7,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@v1.3.1
+
     - name: Fetch Sources
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4.1.2
     
     - name: Gradle Wrapper Validation
-      uses: gradle/wrapper-validation-action@v1.0.5
+      uses: gradle/wrapper-validation-action@v2.1.2
     
     - name: Setup Java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4.2.1
       with:
         distribution: zulu
         java-version: 17
@@ -26,21 +29,13 @@ jobs:
       run: |
         PROPERTIES="$(./gradlew properties --console=plain -q)"
         VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-        echo "::set-output name=version::$VERSION"
-        echo "::set-output name=pluginVerifierHomeDir::~/.pluginVerifier"
-        ./gradlew listProductsReleases
+        echo "version=$(echo $VERSION)" >> $GITHUB_OUTPUT
 
     - name: Run Tests
       run: ./gradlew test
-      
-    - name: Setup Plugin Verifier IDEs Cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ steps.properties.outputs.pluginVerifierHomeDir }}/ides
-        key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
 
     - name: Run Plugin Verification
-      run: ./gradlew runPluginVerifier -Pplugin.verifier.home.dir=${{ steps.properties.outputs.pluginVerifierHomeDir }}
+      run: ./gradlew runPluginVerifier -Pplugin.verifier.home.dir=~/.pluginVerifier
       
     - name: Prepare Plugin Artifact
       id: artifact
@@ -48,10 +43,11 @@ jobs:
       run: |
         cd ${{ github.workspace }}/build/distributions
         FILENAME=`ls *.zip`
-        echo "::set-output name=filename::${FILENAME:0:-4}"
+        CUT_FILENAME=${FILENAME:0:-4}
+        echo "filename=$(echo $CUT_FILENAME)" >> $GITHUB_OUTPUT
       
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4.3.1
       with:
         name: ${{ steps.artifact.outputs.filename }}
         path: ./build/distributions/
@@ -62,11 +58,9 @@ jobs:
       run: ./gradlew publishPlugin
 
     - name: Create Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2.0.4
       with:
         tag_name: v${{ steps.properties.outputs.version }}
-        release_name: v${{ steps.properties.outputs.version }}
+        name: v${{ steps.properties.outputs.version }}
         draft: false
         prerelease: false
