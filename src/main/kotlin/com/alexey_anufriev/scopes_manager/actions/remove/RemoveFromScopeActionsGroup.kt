@@ -1,6 +1,7 @@
 package com.alexey_anufriev.scopes_manager.actions.remove
 
 import com.alexey_anufriev.scopes_manager.actions.ScopeGroupActionBase
+import com.alexey_anufriev.scopes_manager.utils.PackageSetUtils
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -43,7 +44,7 @@ class RemoveFromScopeActionsGroup : ScopeGroupActionBase() {
         return Stream.of(*scopesHolder.editableScopes)
             .filter { scope ->
                 val packageSet = scope.value as? PackageSetBase ?: return@filter false
-                selectedFiles.stream().anyMatch { file -> packageSet.contains(file, project, scopesHolder) }
+                selectedFiles.stream().anyMatch { file -> PackageSetUtils.contains(project, packageSet, file) }
             }
             .map { scope -> RemoveFromScopeAction(scopesHolder, scope) }
     }

@@ -1,6 +1,7 @@
 package com.alexey_anufriev.scopes_manager.actions.add
 
 import com.alexey_anufriev.scopes_manager.actions.ScopeActionBase
+import com.alexey_anufriev.scopes_manager.utils.PackageSetUtils
 import com.alexey_anufriev.scopes_manager.utils.PackageSetUtils.excludePackage
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -33,7 +34,7 @@ class AddToScopeAction(
         }
 
         // if fast-fix did not help then join current scope with a new content
-        if (newScopeContent == null || !newScopeContent.contains(selectedFile, project, scopesHolder)) {
+        if (newScopeContent == null || !PackageSetUtils.contains(project, newScopeContent, selectedFile)) {
             newScopeContent = UnionPackageSet.create(currentScopeContent!!, selectedContent) as PackageSetBase
         }
         return newScopeContent
@@ -44,7 +45,7 @@ class AddToScopeAction(
         selectedFile: VirtualFile,
         currentScopeContent: PackageSetBase?
     ): Boolean {
-        return currentScopeContent != null && currentScopeContent.contains(selectedFile, project, scopesHolder)
+        return currentScopeContent != null && PackageSetUtils.contains(project, currentScopeContent, selectedFile)
     }
 
 }
