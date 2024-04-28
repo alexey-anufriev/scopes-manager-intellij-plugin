@@ -19,6 +19,7 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.selected
+import com.intellij.ui.dsl.builder.toNullableProperty
 import com.intellij.util.ui.JBUI
 import java.awt.Color
 import javax.swing.DefaultComboBoxModel
@@ -67,7 +68,7 @@ class CreateNewScopeDialog(
         row {
             label("Sharing Type")
 
-            comboBox(DefaultComboBoxModel(arrayOf(localScope, sharedScope))).bindItem(::scopeType)
+            comboBox(DefaultComboBoxModel(arrayOf(localScope, sharedScope))).bindItem(::scopeType.toNullableProperty())
         }
 
         row {

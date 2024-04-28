@@ -72,6 +72,8 @@
     <change-notes><![CDATA[
         1.9.7: Support composed projects that include external sources.
         <br/>
+        Minimal version is set to 2023.2.
+        <br/>
         <br/>
         1.9.6: Set max compatible IntelliJ build to 241.*.
         <br/>
