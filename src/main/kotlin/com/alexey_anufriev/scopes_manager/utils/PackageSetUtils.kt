@@ -7,10 +7,12 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.scope.packageSet.CompoundPackageSet
 import com.intellij.psi.search.scope.packageSet.IntersectionPackageSet
+import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
 import com.intellij.psi.search.scope.packageSet.PackageSetBase
 import com.intellij.psi.search.scope.packageSet.UnionPackageSet
 import java.util.Arrays
 import java.util.stream.Collectors.toList
+import javax.swing.Icon
 
 object PackageSetUtils {
 
@@ -50,7 +52,7 @@ object PackageSetUtils {
 
             for (root in ModuleRootManager.getInstance(module).contentRoots) {
                 if (VfsUtilCore.isAncestor(root!!, file, false)) {
-                    val fileIsInScope = packageSet.contains(file, ExternalProject(root, project), null)
+                    val fileIsInScope = packageSet.contains(file, project, ExternalNamedScopeManager(root, project))
                     if (fileIsInScope) {
                         return true
                     }
@@ -62,10 +64,22 @@ object PackageSetUtils {
 
 }
 
-private class ExternalProject(private val projectBaseDir: VirtualFile, projectDelegate: Project) : Project by projectDelegate {
+// mock to be able to override base dir for package set matching logic
+private class ExternalNamedScopeManager(
+    private val projectBaseDir: VirtualFile,
+    project: Project
+) : NamedScopesHolder(project) {
 
-    override fun getBaseDir(): VirtualFile {
+    override fun getProjectBaseDir(): VirtualFile {
         return this.projectBaseDir
+    }
+
+    override fun getDisplayName(): String {
+        TODO("Not intended for use")
+    }
+
+    override fun getIcon(): Icon {
+        TODO("Not intended for use")
     }
 
 }
