@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.alexey-anufriev'
-version '1.9.8'
+version '1.9.9'
 
 repositories {
     mavenCentral()
@@ -21,12 +21,12 @@ dependencies {
 }
 
 intellij {
-    version.set('2023.2')
+    version.set('2022.2')
 }
 
 patchPluginXml {
     version.set(project.version as String)
-    sinceBuild.set('232')
+    sinceBuild.set('222')
     untilBuild.set('241.*')
 }
 

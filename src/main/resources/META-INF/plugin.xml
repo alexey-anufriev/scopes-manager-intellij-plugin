@@ -70,6 +70,9 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.9.9: Minimal version is set back to 2022.2.
+        <br/>
+        <br/>
         1.9.8: Internal refactoring.
         <br/>
         <br/>
