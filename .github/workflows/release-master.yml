@@ -58,7 +58,7 @@ jobs:
       run: ./gradlew publishPlugin
 
     - name: Create Release
-      uses: softprops/action-gh-release@v2.0.5
+      uses: softprops/action-gh-release@v2.0.6
       with:
         tag_name: v${{ steps.properties.outputs.version }}
         name: v${{ steps.properties.outputs.version }}
