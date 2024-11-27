@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.0.21'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.0'
     implementation 'org.jetbrains.kotlin:kotlin-reflect:2.0.21'
     testImplementation 'org.assertj:assertj-core:3.26.3'
     testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
