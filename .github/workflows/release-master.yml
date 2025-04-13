@@ -19,7 +19,7 @@ jobs:
     - name: Setup Java
       uses: actions/setup-java@v4.7.1
       with:
-        distribution: zulu
+        distribution: corretto
         java-version: 17
         cache: gradle
 
