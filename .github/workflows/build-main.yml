@@ -11,6 +11,8 @@ jobs:
     steps:
     - name: Free Disk Space
       uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
 
     - name: Fetch Sources
       uses: actions/checkout@v4.2.2
@@ -30,3 +32,6 @@ jobs:
 
     - name: Run Plugin Verification
       run: ./gradlew runPluginVerifier -Pplugin.verifier.home.dir=~/.pluginVerifier
+
+    - name: Check Disk Space
+      run: df -h

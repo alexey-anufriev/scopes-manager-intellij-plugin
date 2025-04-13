@@ -9,6 +9,8 @@ jobs:
     steps:
     - name: Free Disk Space
       uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
 
     - name: Fetch Sources
       uses: actions/checkout@v4.2.2
@@ -64,3 +66,6 @@ jobs:
         name: v${{ steps.properties.outputs.version }}
         draft: false
         prerelease: false
+
+    - name: Check Disk Space
+      run: df -h
