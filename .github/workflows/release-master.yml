@@ -13,7 +13,7 @@ jobs:
         tool-cache: true
 
     - name: Fetch Sources
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.0
     
     - name: Gradle Wrapper Validation
       uses: gradle/wrapper-validation-action@v3.5.0
