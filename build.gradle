@@ -15,7 +15,7 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.20'
     implementation 'org.jetbrains.kotlin:kotlin-reflect:2.2.20'
     testImplementation 'org.assertj:assertj-core:3.27.6'
-    testImplementation 'org.mockito.kotlin:mockito-kotlin:6.0.0'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:6.1.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:6.0.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:6.0.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.13.4'
