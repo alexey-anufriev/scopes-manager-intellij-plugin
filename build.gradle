@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'org.jetbrains.intellij' version '1.17.4'
-    id 'org.jetbrains.kotlin.jvm' version '2.2.20'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.21'
 }
 
 group 'com.alexey-anufriev'
@@ -12,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.20'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:2.2.20'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.21'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:2.2.21'
     testImplementation 'org.assertj:assertj-core:3.27.6'
     testImplementation 'org.mockito.kotlin:mockito-kotlin:6.1.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:6.0.0'
