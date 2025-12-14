@@ -39,6 +39,12 @@ test {
     useJUnitPlatform()
 }
 
+runPluginVerifier {
+    ideVersions = [
+            "IC-2025.2.6"
+    ]
+}
+
 publishPlugin {
     token.set(System.getenv("PUBLISH_TOKEN"))
 }
