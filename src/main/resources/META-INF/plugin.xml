@@ -31,6 +31,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.alexey_anufriev.scopes_manager.ScopesManagerInitializer" />
+        <notificationGroup id="ScopesManager" displayType="BALLOON" />
     </extensions>
 
     <actions>
@@ -71,6 +72,8 @@
 
     <change-notes><![CDATA[
         1.12.0: Set max compatible IntelliJ build to 253.*.
+        <br/>
+        Keyboard Shortcuts are not overriding existing ones.
         <br/>
         <br/>
         1.11.0: Set max compatible IntelliJ build to 252.*.
