@@ -21,8 +21,11 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.0.1'
 }
 
+def ide = (findProperty("ide") ?: "IC").toString()
+
 intellij {
-    version.set('2022.2')
+    version.set("2022.2")
+    type.set(ide)
 }
 
 patchPluginXml {
@@ -49,22 +52,20 @@ publishPlugin {
     token.set(System.getenv("PUBLISH_TOKEN"))
 }
 
-tasks.register('runRider') {
-    dependsOn(runIde)
-    intellij {
-        type.set("RD")
-    }
-    runIde {
-        ideDir.set(file("/home/alexey/.local/share/JetBrains/Toolbox/apps/rider"))
-    }
+tasks.register("runGoland", GradleBuild) {
+    group = "intellij"
+    tasks = ["runIde"]
+    startParameter.projectProperties = ["ide": "GO"]
 }
 
-tasks.register('runGoland') {
-    dependsOn(runIde)
-    intellij {
-        type.set("GO")
-    }
-    runIde {
-        ideDir.set(file("/home/alexey/.local/share/JetBrains/Toolbox/apps/goland"))
-    }
+tasks.register("runRider", GradleBuild) {
+    group = "intellij"
+    tasks = ["runIde"]
+    startParameter.projectProperties = ["ide": "RD"]
+}
+
+tasks.register("runIdeaUltimate", GradleBuild) {
+    group = "intellij"
+    tasks = ["runIde"]
+    startParameter.projectProperties = ["ide": "IU"]
 }
