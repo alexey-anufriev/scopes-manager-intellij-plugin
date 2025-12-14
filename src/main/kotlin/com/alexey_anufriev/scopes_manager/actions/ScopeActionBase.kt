@@ -34,6 +34,8 @@ abstract class ScopeActionBase(
     scope: NamedScope
 ) : AnAction(scope.scopeId, null, scope.icon) {
 
+    private val scopeId: String = scope.scopeId
+
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project!!
         val files = event.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY)!!
@@ -45,7 +47,7 @@ abstract class ScopeActionBase(
         val patternProvider = PatternDialectProvider.getInstance(ProjectPatternProvider.FILE)
 
         val unchangedScopes = Stream.of(*scopesHolder.editableScopes)
-            .filter { editableScope -> editableScope.scopeId != templateText }
+            .filter { editableScope -> editableScope.scopeId != scopeId }
             .collect(Collectors.toList())
 
         Arrays.stream(files)
@@ -85,7 +87,8 @@ abstract class ScopeActionBase(
         unchangedScopes: List<NamedScope>,
         selectedFile: VirtualFile
     ) {
-        val currentScopeContent = scopesHolder.getScope(templateText)!!.value as? PackageSetBase
+        val currentScope = scopesHolder.getScope(scopeId)
+        val currentScopeContent = currentScope?.value as? PackageSetBase
 
         if (skipAction(project, selectedFile, currentScopeContent)) {
             return
