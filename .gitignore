@@ -6,6 +6,6 @@ allure-results
 .intellijPlatform
 .kotlin
 
-src/integrationTest/resources/test-projects/simple-project/build
-src/integrationTest/resources/test-projects/simple-project/.idea
-src/integrationTest/resources/test-projects/simple-project/simple-project.iml
+src/integrationTest/resources/test-projects/*/build
+src/integrationTest/resources/test-projects/*/.idea
+src/integrationTest/resources/test-projects/*/*.iml

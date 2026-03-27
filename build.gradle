@@ -92,7 +92,14 @@ test {
     useJUnitPlatform()
 }
 
-def configureUiIntegrationTest = { Test task, String displayName, String productCode, String ideVersion = null, String ideChannel = "release", String toolWindowId = "Project" ->
+def configureUiIntegrationTest = { Test task,
+                                   String displayName,
+                                   String productCode,
+                                   String ideVersion = null,
+                                   String ideChannel = "release",
+                                   String toolWindowId = "Project",
+                                   String testProjectPath = "src/integrationTest/resources/test-projects/idea-project",
+                                   String sampleFileNames = "App,App.java" ->
     task.description = "Runs UI integration tests with IntelliJ Starter/Driver against ${displayName}."
     task.group = "verification"
 
@@ -102,6 +109,8 @@ def configureUiIntegrationTest = { Test task, String displayName, String product
     task.systemProperty("uiTestProductCode", productCode)
     task.systemProperty("uiTestIdeChannel", ideChannel)
     task.systemProperty("uiTestToolWindowId", toolWindowId)
+    task.systemProperty("uiTestProjectPath", testProjectPath)
+    task.systemProperty("uiTestSampleFileNames", sampleFileNames)
     if (ideVersion != null) {
         task.systemProperty("uiTestIdeVersion", ideVersion)
     }
@@ -131,15 +140,42 @@ tasks.register("integrationTestLatestEap", Test) {
 }
 
 tasks.register("integrationTestGoLandLatest", Test) {
-    configureUiIntegrationTest(delegate as Test, "latest GoLand release", "GO")
+    configureUiIntegrationTest(
+        delegate as Test,
+        "latest GoLand release",
+        "GO",
+        null,
+        "release",
+        "Project",
+        "src/integrationTest/resources/test-projects/goland-project",
+        "main.go"
+    )
 }
 
 tasks.register("integrationTestRiderLatest", Test) {
-    configureUiIntegrationTest(delegate as Test, "latest Rider release", "RD", null, "release", "Solution")
+    configureUiIntegrationTest(
+        delegate as Test,
+        "latest Rider release",
+        "RD",
+        null,
+        "release",
+        "Solution",
+        "src/integrationTest/resources/test-projects/rider-project",
+        "Program.cs"
+    )
 }
 
 tasks.register("integrationTestWebStormLatest", Test) {
-    configureUiIntegrationTest(delegate as Test, "latest WebStorm release", "WS")
+    configureUiIntegrationTest(
+        delegate as Test,
+        "latest WebStorm release",
+        "WS",
+        null,
+        "release",
+        "Project",
+        "src/integrationTest/resources/test-projects/webstorm-project",
+        "index.js"
+    )
 }
 
 tasks.register("integrationTestMatrix") {

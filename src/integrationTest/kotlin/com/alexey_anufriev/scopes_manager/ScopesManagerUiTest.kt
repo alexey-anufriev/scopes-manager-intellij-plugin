@@ -41,9 +41,18 @@ class ScopesManagerUiTest {
         val ideVersion = System.getProperty("uiTestIdeVersion")
         val ideChannel = System.getProperty("uiTestIdeChannel", "release")
         val toolWindowId = System.getProperty("uiTestToolWindowId", "Project")
+        val projectPath = System.getProperty(
+            "uiTestProjectPath",
+            "src/integrationTest/resources/test-projects/idea-project"
+        )
+        val sampleFileNames = System.getProperty("uiTestSampleFileNames", "App,App.java")
+            .split(',')
+            .map(String::trim)
+            .filter(String::isNotEmpty)
+            .toSet()
         val testCase = TestCase(
             ideProduct(productCode),
-            LocalProjectInfo(Path.of("src/integrationTest/resources/test-projects/simple-project"))
+            LocalProjectInfo(Path.of(projectPath))
         )
 
         val ideUnderTest = when (ideChannel) {
@@ -65,7 +74,7 @@ class ScopesManagerUiTest {
             }
             ideFrame {
                 projectView {
-                    assertAddToScopeVisibleForSampleFile()
+                    assertAddToScopeVisibleForSampleFile(sampleFileNames)
                 }
                 popupMenu().findMenuItemByText("Add to Scope")
             }
@@ -92,11 +101,11 @@ class ScopesManagerUiTest {
         }
     }
 
-    private fun ProjectViewToolWindowUi.assertAddToScopeVisibleForSampleFile() {
+    private fun ProjectViewToolWindowUi.assertAddToScopeVisibleForSampleFile(sampleFileNames: Set<String>) {
         projectViewTree.expandAll(30.seconds)
         val expandedPaths = projectViewTree.collectExpandedPaths()
         val row = expandedPaths.firstOrNull { path ->
-            path.path.contains("sample") && path.path.last() in setOf("App", "App.java")
+            path.path.last() in sampleFileNames
         }?.row
 
         if (row != null && (openContextMenuWithRightClick(row) || openContextMenuWithKeyboard(row))) {
