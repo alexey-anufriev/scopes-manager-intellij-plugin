@@ -24,6 +24,10 @@
         <li>Add to Scope: Alt+S / ⌥+S</li>
         <li>Remove from Scope: Alt+D / ⌥+D</li>
         </ul>
+
+        <br/>
+        <br/>
+        If this plugin saved you time, you can <a href="https://www.buymeacoffee.com/alexey.anufriev">say thanks with a coffee</a> ☕
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
