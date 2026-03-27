@@ -1,5 +1,11 @@
 build
+out
+allure-results
 .gradle
 .idea
 .intellijPlatform
 .kotlin
+
+src/integrationTest/resources/test-projects/simple-project/build
+src/integrationTest/resources/test-projects/simple-project/.idea
+src/integrationTest/resources/test-projects/simple-project/simple-project.iml

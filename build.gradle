@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id 'java'
@@ -11,6 +12,10 @@ version = '1.13.0'
 
 def ide = (findProperty('ide') ?: 'IC').toString()
 def platformVersion = '2025.1'
+def integrationTest = sourceSets.create("integrationTest") {
+    compileClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.main.output
+}
 
 repositories {
     mavenCentral()
@@ -23,9 +28,15 @@ dependencies {
     intellijPlatform {
         create(ide, platformVersion)
         bundledPlugin('com.intellij.tasks')
+        testFramework TestFrameworkType.Starter.INSTANCE
         pluginVerifier()
         zipSigner()
     }
+
+    integrationTestImplementation sourceSets.main.output
+    integrationTestImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
+    integrationTestImplementation 'org.kodein.di:kodein-di-jvm:7.20.2'
+    integrationTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1'
 
     testImplementation 'org.assertj:assertj-core:3.27.7'
     testImplementation 'org.mockito.kotlin:mockito-kotlin:6.3.0'
@@ -36,6 +47,12 @@ dependencies {
     // Remove once plugin tests pass without org/junit/rules/TestRule on the runtime classpath.
     testRuntimeOnly 'junit:junit:4.13.2'
 }
+
+configurations[integrationTest.implementationConfigurationName].extendsFrom(
+    configurations.testImplementation,
+    configurations.intellijPlatformTestDependencies
+)
+configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly)
 
 intellijPlatform {
     pluginConfiguration {
@@ -73,6 +90,71 @@ kotlin {
 
 test {
     useJUnitPlatform()
+}
+
+def configureUiIntegrationTest = { Test task, String displayName, String productCode, String ideVersion = null, String ideChannel = "release", String toolWindowId = "Project" ->
+    task.description = "Runs UI integration tests with IntelliJ Starter/Driver against ${displayName}."
+    task.group = "verification"
+
+    task.testClassesDirs = integrationTest.output.classesDirs
+    task.classpath = integrationTest.runtimeClasspath
+    task.systemProperty("path.to.build.plugin", tasks.named("prepareSandbox").get().pluginDirectory.get().asFile.absolutePath)
+    task.systemProperty("uiTestProductCode", productCode)
+    task.systemProperty("uiTestIdeChannel", ideChannel)
+    task.systemProperty("uiTestToolWindowId", toolWindowId)
+    if (ideVersion != null) {
+        task.systemProperty("uiTestIdeVersion", ideVersion)
+    }
+
+    task.useJUnitPlatform()
+    task.dependsOn(tasks.named("prepareSandbox"))
+}
+
+tasks.register("integrationTest", Test) {
+    configureUiIntegrationTest(delegate as Test, "IntelliJ IDEA Community 2025.1", "IC", "2025.1")
+}
+
+tasks.register("integrationTest2025_2", Test) {
+    configureUiIntegrationTest(delegate as Test, "IntelliJ IDEA Community 2025.2", "IC", "2025.2")
+}
+
+tasks.register("integrationTest2025_3", Test) {
+    configureUiIntegrationTest(delegate as Test, "IntelliJ IDEA 2025.3", "IU", "2025.3")
+}
+
+tasks.register("integrationTestLatestRelease", Test) {
+    configureUiIntegrationTest(delegate as Test, "latest IntelliJ IDEA release", "IU")
+}
+
+tasks.register("integrationTestLatestEap", Test) {
+    configureUiIntegrationTest(delegate as Test, "latest IntelliJ IDEA EAP", "IU", null, "eap")
+}
+
+tasks.register("integrationTestGoLandLatest", Test) {
+    configureUiIntegrationTest(delegate as Test, "latest GoLand release", "GO")
+}
+
+tasks.register("integrationTestRiderLatest", Test) {
+    configureUiIntegrationTest(delegate as Test, "latest Rider release", "RD", null, "release", "Solution")
+}
+
+tasks.register("integrationTestWebStormLatest", Test) {
+    configureUiIntegrationTest(delegate as Test, "latest WebStorm release", "WS")
+}
+
+tasks.register("integrationTestMatrix") {
+    group = "verification"
+    description = "Runs the UI integration tests against the configured IDE matrix."
+    dependsOn(
+        tasks.named("integrationTest"),
+        tasks.named("integrationTest2025_2"),
+        tasks.named("integrationTest2025_3"),
+        tasks.named("integrationTestLatestRelease"),
+        tasks.named("integrationTestLatestEap"),
+        tasks.named("integrationTestGoLandLatest"),
+        tasks.named("integrationTestRiderLatest"),
+        tasks.named("integrationTestWebStormLatest")
+    )
 }
 
 tasks.register("runGoland", GradleBuild) {

@@ -7,7 +7,7 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.keymap.Keymap
 import com.intellij.openapi.keymap.ex.KeymapManagerEx
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
@@ -17,9 +17,9 @@ private const val ADD_TO_SCOPE_ACTION_RD = "com.alexey-anufriev.scopes-manager.A
 private const val REMOVE_FROM_SCOPE_ACTION = "com.alexey-anufriev.scopes-manager.RemoveFromScopeActionGroup"
 private const val REMOVE_FROM_SCOPE_ACTION_RD = "com.alexey-anufriev.scopes-manager.RemoveFromScopeActionGroup_RD"
 
-class ScopesManagerInitializer : StartupActivity {
+class ScopesManagerInitializer : ProjectActivity {
 
-    override fun runActivity(project: Project) {
+    override suspend fun execute(project: Project) {
         val rider = isRider()
 
         val addActionId = if (rider) ADD_TO_SCOPE_ACTION_RD else ADD_TO_SCOPE_ACTION
