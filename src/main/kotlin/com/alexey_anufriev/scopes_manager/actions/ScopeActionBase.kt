@@ -24,6 +24,7 @@ import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
 import com.intellij.psi.search.scope.packageSet.PackageSet
 import com.intellij.psi.search.scope.packageSet.PackageSetBase
 import com.intellij.util.concurrency.EdtExecutorService
+import javax.swing.Icon
 import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
@@ -35,6 +36,7 @@ abstract class ScopeActionBase(
 ) : AnAction(scope.scopeId, null, scope.icon) {
 
     private val scopeId: String = scope.scopeId
+    private val scopeIcon: Icon = scope.icon
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project!!
@@ -127,7 +129,7 @@ abstract class ScopeActionBase(
         }
 
         val newScopeContent = getNewScopeContent(project, selectedFile, currentScopeContent, selectedContent)
-        val updatedScope = NamedScope(templatePresentation.text, templatePresentation.icon, newScopeContent)
+        val updatedScope = NamedScope(templatePresentation.text, scopeIcon, newScopeContent)
         val scopes = unchangedScopes.toTypedArray().plus(updatedScope)
         scopesHolder.scopes = scopes
 

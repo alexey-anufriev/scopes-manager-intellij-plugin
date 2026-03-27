@@ -27,6 +27,7 @@
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.tasks</depends>
     <depends optional="true" config-file="plugin-rider.xml">com.intellij.modules.rider</depends>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -71,6 +72,11 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.13.0: Upgrade to IntelliJ Platform Gradle Plugin v2.
+        <br/>
+        Set min compatible IntelliJ build to 251.*.
+        <br/>
+        <br/>
         1.12.0: Set max compatible IntelliJ build to 253.*.
         <br/>
         Keyboard Shortcuts are not overriding existing ones.

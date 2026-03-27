@@ -22,7 +22,7 @@ jobs:
       uses: actions/setup-java@v5.2.0
       with:
         distribution: corretto
-        java-version: 17
+        java-version: 21
         cache: gradle
 
     - name: Export Properties
@@ -37,7 +37,7 @@ jobs:
       run: ./gradlew test
 
     - name: Run Plugin Verification
-      run: ./gradlew runPluginVerifier -Pplugin.verifier.home.dir=~/.pluginVerifier
+      run: ./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier
       
     - name: Prepare Plugin Artifact
       id: artifact

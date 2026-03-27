@@ -1,63 +1,78 @@
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
+
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '1.17.4'
-    id 'org.jetbrains.kotlin.jvm' version '2.3.10'
+    id 'org.jetbrains.intellij.platform' version '2.13.1'
+    id 'org.jetbrains.kotlin.jvm' version '2.1.10'
 }
 
-group 'com.alexey-anufriev'
-version '1.12.0'
+group = 'com.alexey-anufriev'
+version = '1.13.0'
+
+def ide = (findProperty('ide') ?: 'IC').toString()
+def platformVersion = '2025.1'
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.10'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:2.3.10'
+    intellijPlatform {
+        create(ide, platformVersion)
+        bundledPlugin('com.intellij.tasks')
+        pluginVerifier()
+        zipSigner()
+    }
+
     testImplementation 'org.assertj:assertj-core:3.27.7'
     testImplementation 'org.mockito.kotlin:mockito-kotlin:6.2.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:6.0.3'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:6.0.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.0.2'
+
+    // Required by the IntelliJ JUnit 5 test framework until JetBrains fixes IJPL-159134.
+    // Remove once plugin tests pass without org/junit/rules/TestRule on the runtime classpath.
+    testRuntimeOnly 'junit:junit:4.13.2'
 }
 
-def ide = (findProperty("ide") ?: "IC").toString()
+intellijPlatform {
+    pluginConfiguration {
+        version = project.version as String
 
-intellij {
-    version.set("2022.2")
-    type.set(ide)
+        ideaVersion {
+            sinceBuild = '251'
+            untilBuild = provider { null }
+        }
+    }
+
+    pluginVerification {
+        failureLevel = [VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS]
+
+        ides {
+            create('IC', '2025.1')
+            create('IU', '2025.3')
+        }
+    }
+
+    publishing {
+        token = System.getenv('PUBLISH_TOKEN')
+    }
 }
 
-patchPluginXml {
-    version.set(project.version as String)
-    sinceBuild.set('222')
-    untilBuild.set('253.*')
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 test {
     useJUnitPlatform()
-}
-
-runPluginVerifier {
-    ideVersions = [
-            "IC-2025.2.6",
-            "IIU-2025.3",
-//            "PS-2025.3",
-//            "WS-2025.3",
-//            "CL-2025.3",
-//            "RD-2025.3",
-//            "PC-2025.3",
-//            "GO-2025.3",
-//            "RM-2025.3"
-    ]
-}
-
-publishPlugin {
-    token.set(System.getenv("PUBLISH_TOKEN"))
 }
 
 tasks.register("runGoland", GradleBuild) {
