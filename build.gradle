@@ -37,6 +37,8 @@ dependencies {
     integrationTestImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
     integrationTestImplementation 'org.kodein.di:kodein-di-jvm:7.20.2'
     integrationTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1'
+    // Required to deserialize AssertJ Swing exceptions returned by the remote Driver on CI.
+    integrationTestRuntimeOnly 'org.assertj:assertj-swing:3.17.1'
 
     testImplementation 'org.assertj:assertj-core:3.27.7'
     testImplementation 'org.mockito.kotlin:mockito-kotlin:6.3.0'
