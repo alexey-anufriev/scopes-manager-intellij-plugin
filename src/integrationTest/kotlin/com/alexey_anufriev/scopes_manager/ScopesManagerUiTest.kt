@@ -33,6 +33,19 @@ import kotlin.time.Duration.Companion.seconds
 
 class ScopesManagerUiTest {
 
+    private data class UiTestConfig(
+        val productCode: String,
+        val ideVersion: String?,
+        val ideChannel: String,
+        val toolWindowId: String,
+        val activateTrial: Boolean,
+        val projectHome: Path,
+        val sampleFileNames: Set<String>,
+        val samplePath: Array<String>
+    ) {
+        val testNameSuffix: String = listOf(productCode, ideVersion ?: ideChannel).joinToString("-")
+    }
+
     init {
         di = DI {
             extend(di)
@@ -42,79 +55,36 @@ class ScopesManagerUiTest {
 
     @Test
     fun pluginStartsWithoutUiErrorsOnProjectOpen() {
-        runUiTest { productCode, toolWindowId, sampleFileNames, samplePath, activateTrial ->
-            if (activateTrial && productCode == "RD") {
+        runUiTest { config ->
+            if (config.activateTrial && config.productCode == "RD") {
                 handleRiderLicenseDialogIfShown()
             }
 
-            waitForUiReady(productCode, toolWindowId)
-            if (productCode == "RD") {
-                ideFrame {
-                    projectView {
-                        selectSampleFile(sampleFileNames, samplePath)
-                    }
-                }
-            } else {
-                ideFrame {
-                    projectView {
-                        assertAddToScopeVisibleForSampleFile(sampleFileNames, samplePath)
-                    }
-                }
-                assertPopupContainsText("Add to Scope")
-            }
+            waitForUiReady(config.productCode, config.toolWindowId)
+            verifyProductBehavior(config)
         }
     }
 
-    private fun runUiTest(
-        assertion: Driver.(
-            productCode: String,
-            toolWindowId: String,
-            sampleFileNames: Set<String>,
-            samplePath: Array<String>,
-            activateTrial: Boolean
-        ) -> Unit
-    ) {
-        val productCode = System.getProperty("uiTestProductCode", "IC")
-        val ideVersion = System.getProperty("uiTestIdeVersion")
-        val ideChannel = System.getProperty("uiTestIdeChannel", "release")
-        val toolWindowId = System.getProperty("uiTestToolWindowId", "Project")
-        val activateTrial = System.getProperty("uiTestActivateTrial", "false").toBoolean()
-        val projectPath = System.getProperty(
-            "uiTestProjectPath",
-            "src/integrationTest/resources/test-projects/idea-project"
-        )
-        val sampleFileNames = System.getProperty("uiTestSampleFileNames", "App,App.java")
-            .split(',')
-            .map(String::trim)
-            .filter(String::isNotEmpty)
-            .toSet()
-        val samplePath = System.getProperty("uiTestSamplePath", "src/main/java/sample/App")
-            .split('/')
-            .map(String::trim)
-            .filter(String::isNotEmpty)
-            .toTypedArray()
-        val projectHome = Path.of(projectPath)
-        val trustedProjectPath = if (projectHome.toString().endsWith(".sln")) projectHome.parent else projectHome
+    private fun runUiTest(assertion: Driver.(UiTestConfig) -> Unit) {
+        val config = readConfig()
         val testCase = TestCase(
-            ideProduct(productCode),
-            LocalProjectInfo(projectHome)
+            ideProduct(config.productCode),
+            LocalProjectInfo(config.projectHome)
         )
 
-        val ideUnderTest = when (ideChannel) {
-            "eap" -> ideVersion?.let { testCase.useEAP(it) } ?: testCase.useEAP()
-            else -> ideVersion?.let { testCase.withVersion(it) } ?: testCase.useRelease()
+        val ideUnderTest = when (config.ideChannel) {
+            "eap" -> config.ideVersion?.let { testCase.useEAP(it) } ?: testCase.useEAP()
+            else -> config.ideVersion?.let { testCase.withVersion(it) } ?: testCase.useRelease()
         }
 
-        val testNameSuffix = listOf(productCode, ideVersion ?: ideChannel).joinToString("-")
-
         Starter.newContext(
-            "scopes-manager-ui-smoke-$testNameSuffix",
+            "scopes-manager-ui-smoke-${config.testNameSuffix}",
             ideUnderTest
         ).apply {
-            addProjectToTrustedLocations(trustedProjectPath)
+            addProjectToTrustedLocations(config.projectHome)
             PluginConfigurator(this).installPluginFromFolder(File(System.getProperty("path.to.build.plugin")))
         }.runIdeWithDriver().useDriverAndCloseIde {
-            assertion(productCode, toolWindowId, sampleFileNames, samplePath, activateTrial)
+            assertion(config)
         }
     }
 
@@ -125,6 +95,58 @@ class ScopesManagerUiTest {
         "RD" -> IdeProductProvider.RD
         "WS" -> IdeProductProvider.WS
         else -> throw IllegalArgumentException("Unsupported IDE product code: $productCode")
+    }
+
+    private fun readConfig(): UiTestConfig {
+        val projectPath = System.getProperty(
+            "uiTestProjectPath",
+            "src/integrationTest/resources/test-projects/idea-project"
+        )
+
+        return UiTestConfig(
+            productCode = System.getProperty("uiTestProductCode", "IC"),
+            ideVersion = System.getProperty("uiTestIdeVersion"),
+            ideChannel = System.getProperty("uiTestIdeChannel", "release"),
+            toolWindowId = System.getProperty("uiTestToolWindowId", "Project"),
+            activateTrial = System.getProperty("uiTestActivateTrial", "false").toBoolean(),
+            projectHome = Path.of(projectPath),
+            sampleFileNames = System.getProperty("uiTestSampleFileNames", "App,App.java")
+                .split(',')
+                .map(String::trim)
+                .filter(String::isNotEmpty)
+                .toSet(),
+            samplePath = System.getProperty("uiTestSamplePath", "src/main/java/sample/App")
+                .split('/')
+                .map(String::trim)
+                .filter(String::isNotEmpty)
+                .toTypedArray()
+        )
+    }
+
+    private fun Driver.verifyProductBehavior(config: UiTestConfig) {
+        if (config.productCode == "RD") {
+            verifyRiderProjectView(config)
+            return
+        }
+
+        verifyPopupContainsAddToScope(config)
+    }
+
+    private fun Driver.verifyRiderProjectView(config: UiTestConfig) {
+        ideFrame {
+            projectView {
+                selectSampleFile(config.sampleFileNames, config.samplePath)
+            }
+        }
+    }
+
+    private fun Driver.verifyPopupContainsAddToScope(config: UiTestConfig) {
+        ideFrame {
+            projectView {
+                assertAddToScopeVisibleForSampleFile(config.sampleFileNames, config.samplePath)
+            }
+        }
+        assertPopupContainsText("Add to Scope")
     }
 
     private fun failingCiServer(): CIServer = object : CIServer by NoCIServer {
