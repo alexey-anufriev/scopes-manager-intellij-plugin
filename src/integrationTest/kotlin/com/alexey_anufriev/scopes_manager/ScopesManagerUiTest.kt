@@ -139,14 +139,20 @@ class ScopesManagerUiTest {
             return false
         }
 
+        val ideFailureText = listOf(message, details)
+
         val knownRiderIssues = listOf(
             "LicensingFacade is null",
             "Empty menu item text for BackendEntityFrameworkActionGroupNew"
         )
-
-        return knownRiderIssues.any { issue ->
-            listOf(message, details).any { it.contains(issue) }
+        if (knownRiderIssues.any { issue -> ideFailureText.any { it.contains(issue) } }) {
+            return true
         }
+
+        val riderHostExitMessage = "Rider host (PID ="
+        val riderHostExitCode = "unexpectedly exited with exit code 143"
+        return ideFailureText.any { it.contains(riderHostExitMessage) } &&
+            ideFailureText.any { it.contains(riderHostExitCode) }
     }
 
     private fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
