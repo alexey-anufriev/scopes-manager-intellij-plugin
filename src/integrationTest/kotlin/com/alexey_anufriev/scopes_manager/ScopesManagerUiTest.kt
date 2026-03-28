@@ -135,7 +135,18 @@ class ScopesManagerUiTest {
 
     private fun shouldIgnoreKnownIdeFailure(message: String, details: String): Boolean {
         val productCode = System.getProperty("uiTestProductCode", "IC")
-        return productCode == "RD" && listOf(message, details).any { it.contains("LicensingFacade is null") }
+        if (productCode != "RD") {
+            return false
+        }
+
+        val knownRiderIssues = listOf(
+            "LicensingFacade is null",
+            "Empty menu item text for BackendEntityFrameworkActionGroupNew"
+        )
+
+        return knownRiderIssues.any { issue ->
+            listOf(message, details).any { it.contains(issue) }
+        }
     }
 
     private fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
