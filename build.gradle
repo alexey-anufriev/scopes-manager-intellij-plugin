@@ -101,7 +101,8 @@ def configureUiIntegrationTest = { Test task,
                                    String toolWindowId = "Project",
                                    String testProjectPath = "src/integrationTest/resources/test-projects/idea-project",
                                    String sampleFileNames = "App,App.java",
-                                   String samplePath = "src/main/java/sample/App" ->
+                                   String samplePath = "src/main/java/sample/App",
+                                   boolean activateTrial = false ->
     task.description = "Runs UI integration tests with IntelliJ Starter/Driver against ${displayName}."
     task.group = "verification"
 
@@ -114,6 +115,7 @@ def configureUiIntegrationTest = { Test task,
     task.systemProperty("uiTestProjectPath", testProjectPath)
     task.systemProperty("uiTestSampleFileNames", sampleFileNames)
     task.systemProperty("uiTestSamplePath", samplePath)
+    task.systemProperty("uiTestActivateTrial", activateTrial.toString())
     if (ideVersion != null) {
         task.systemProperty("uiTestIdeVersion", ideVersion)
     }
@@ -169,7 +171,8 @@ tasks.register("integrationTestRiderLatest", Test) {
         "Project",
         "src/integrationTest/resources/test-projects/rider-project",
         "Program.cs",
-        "App/Program.cs"
+        "App/Program.cs",
+        true
     )
 }
 

@@ -2,12 +2,15 @@ package com.alexey_anufriev.scopes_manager
 
 import com.intellij.driver.client.Driver
 import com.intellij.driver.model.OnDispatcher
-import com.intellij.driver.sdk.waitForIndicators
 import com.intellij.driver.sdk.getToolWindow
+import com.intellij.driver.sdk.ui.components.common.dialogs.licenseDialog
 import com.intellij.driver.sdk.ui.components.common.ideFrame
 import com.intellij.driver.sdk.ui.components.common.toolwindows.ProjectViewToolWindowUi
 import com.intellij.driver.sdk.ui.components.common.toolwindows.projectView
+import com.intellij.driver.sdk.ui.components.elements.isDialogOpened
 import com.intellij.driver.sdk.ui.components.elements.popupMenu
+import com.intellij.driver.sdk.ui.ui
+import com.intellij.driver.sdk.waitForIndicators
 import com.intellij.ide.starter.ci.CIServer
 import com.intellij.ide.starter.ci.NoCIServer
 import com.intellij.ide.starter.di.di
@@ -21,8 +24,8 @@ import com.intellij.ide.starter.runner.Starter
 import org.junit.jupiter.api.Test
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
-import java.io.File
 import java.awt.event.KeyEvent
+import java.io.File
 import java.nio.file.Path
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -39,10 +42,35 @@ class ScopesManagerUiTest {
 
     @Test
     fun pluginStartsWithoutUiErrorsOnProjectOpen() {
+        runUiTest { productCode, toolWindowId, sampleFileNames, samplePath, activateTrial ->
+            if (activateTrial && productCode == "RD") {
+                handleRiderLicenseDialogIfShown()
+            }
+
+            waitForUiReady(productCode, toolWindowId)
+            ideFrame {
+                projectView {
+                    assertAddToScopeVisibleForSampleFile(sampleFileNames, samplePath)
+                }
+            }
+            assertPopupContainsText("Add to Scope")
+        }
+    }
+
+    private fun runUiTest(
+        assertion: Driver.(
+            productCode: String,
+            toolWindowId: String,
+            sampleFileNames: Set<String>,
+            samplePath: Array<String>,
+            activateTrial: Boolean
+        ) -> Unit
+    ) {
         val productCode = System.getProperty("uiTestProductCode", "IC")
         val ideVersion = System.getProperty("uiTestIdeVersion")
         val ideChannel = System.getProperty("uiTestIdeChannel", "release")
         val toolWindowId = System.getProperty("uiTestToolWindowId", "Project")
+        val activateTrial = System.getProperty("uiTestActivateTrial", "false").toBoolean()
         val projectPath = System.getProperty(
             "uiTestProjectPath",
             "src/integrationTest/resources/test-projects/idea-project"
@@ -78,13 +106,7 @@ class ScopesManagerUiTest {
             addProjectToTrustedLocations(trustedProjectPath)
             PluginConfigurator(this).installPluginFromFolder(File(System.getProperty("path.to.build.plugin")))
         }.runIdeWithDriver().useDriverAndCloseIde {
-            waitForUiReady(productCode, toolWindowId)
-            ideFrame {
-                projectView {
-                    assertAddToScopeVisibleForSampleFile(sampleFileNames, samplePath)
-                }
-                popupMenu().findMenuItemByText("Add to Scope")
-            }
+            assertion(productCode, toolWindowId, sampleFileNames, samplePath, activateTrial)
         }
     }
 
@@ -104,8 +126,16 @@ class ScopesManagerUiTest {
             details: String,
             linkToLogs: String?
         ) {
+            if (shouldIgnoreKnownIdeFailure(message, details)) {
+                return
+            }
             throw AssertionError("$testName failed: $message\n$details")
         }
+    }
+
+    private fun shouldIgnoreKnownIdeFailure(message: String, details: String): Boolean {
+        val productCode = System.getProperty("uiTestProductCode", "IC")
+        return productCode == "RD" && listOf(message, details).any { it.contains("LicensingFacade is null") }
     }
 
     private fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
@@ -137,6 +167,87 @@ class ScopesManagerUiTest {
         }
 
         throw AssertionError("Timed out waiting for tool window '$toolWindowId' to become available", lastError)
+    }
+
+    private fun Driver.handleRiderLicenseDialogIfShown() {
+        if (!waitForLicenseDialog(5.seconds)) {
+            return
+        }
+
+        licenseDialog {
+            if (continueButton.present() && continueButton.isEnabled()) {
+                continueButton.click()
+                clickCloseIfPresent()
+                return@licenseDialog
+            }
+
+            if (startTrialTab.present() && startTrialTab.isEnabled()) {
+                startTrialTab.click()
+            }
+
+            if (continueButton.present() && continueButton.isEnabled()) {
+                continueButton.click()
+                clickCloseIfPresent()
+                return@licenseDialog
+            }
+
+            if (startTrialButton.present() && startTrialButton.isEnabled()) {
+                startTrialButton.click()
+                clickCloseIfPresent()
+                return@licenseDialog
+            }
+        }
+    }
+
+    private fun Driver.waitForLicenseDialog(timeout: Duration): Boolean {
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+
+        while (System.nanoTime() < deadline) {
+            if (ui.isDialogOpened("//div[@title='Manage Licenses']")) {
+                return true
+            }
+            Thread.sleep(250)
+        }
+
+        return false
+    }
+
+    private fun Driver.assertPopupContainsText(expectedText: String, timeout: Duration = 15.seconds) {
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        var lastItems = emptyList<String>()
+        var lastError: Throwable? = null
+
+        while (System.nanoTime() < deadline) {
+            try {
+                val popup = ui.popupMenu()
+                val items = popup.itemsList()
+                lastItems = items
+                if (items.any { it.contains(expectedText, ignoreCase = false) }) {
+                    return
+                }
+            } catch (t: Throwable) {
+                lastError = t
+            }
+            Thread.sleep(250)
+        }
+
+        throw AssertionError(
+            "Popup did not contain '$expectedText'. Visible items: $lastItems",
+            lastError
+        )
+    }
+
+    private fun com.intellij.driver.sdk.ui.components.common.dialogs.LicenseDialogUi.clickCloseIfPresent() {
+        val deadline = System.nanoTime() + 5.seconds.inWholeNanoseconds
+
+        while (System.nanoTime() < deadline) {
+            val closeButton = x("//div[@accessiblename='Close']")
+            if (closeButton.present() && closeButton.isEnabled()) {
+                closeButton.click()
+                return
+            }
+            Thread.sleep(250)
+        }
     }
 
     private fun ProjectViewToolWindowUi.assertAddToScopeVisibleForSampleFile(
