@@ -1,5 +1,6 @@
 package com.alexey_anufriev.scopes_manager
 
+import com.intellij.driver.client.Driver
 import com.intellij.driver.model.OnDispatcher
 import com.intellij.driver.sdk.waitForIndicators
 import com.intellij.driver.sdk.getToolWindow
@@ -23,6 +24,7 @@ import org.kodein.di.bindSingleton
 import java.io.File
 import java.awt.event.KeyEvent
 import java.nio.file.Path
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -50,9 +52,16 @@ class ScopesManagerUiTest {
             .map(String::trim)
             .filter(String::isNotEmpty)
             .toSet()
+        val samplePath = System.getProperty("uiTestSamplePath", "src/main/java/sample/App")
+            .split('/')
+            .map(String::trim)
+            .filter(String::isNotEmpty)
+            .toTypedArray()
+        val projectHome = Path.of(projectPath)
+        val trustedProjectPath = if (projectHome.toString().endsWith(".sln")) projectHome.parent else projectHome
         val testCase = TestCase(
             ideProduct(productCode),
-            LocalProjectInfo(Path.of(projectPath))
+            LocalProjectInfo(projectHome)
         )
 
         val ideUnderTest = when (ideChannel) {
@@ -66,15 +75,13 @@ class ScopesManagerUiTest {
             "scopes-manager-ui-smoke-$testNameSuffix",
             ideUnderTest
         ).apply {
+            addProjectToTrustedLocations(trustedProjectPath)
             PluginConfigurator(this).installPluginFromFolder(File(System.getProperty("path.to.build.plugin")))
         }.runIdeWithDriver().useDriverAndCloseIde {
-            waitForIndicators(5.minutes)
-            withContext(OnDispatcher.EDT) {
-                getToolWindow(toolWindowId).show()
-            }
+            waitForUiReady(productCode, toolWindowId)
             ideFrame {
                 projectView {
-                    assertAddToScopeVisibleForSampleFile(sampleFileNames)
+                    assertAddToScopeVisibleForSampleFile(sampleFileNames, samplePath)
                 }
                 popupMenu().findMenuItemByText("Add to Scope")
             }
@@ -101,8 +108,47 @@ class ScopesManagerUiTest {
         }
     }
 
-    private fun ProjectViewToolWindowUi.assertAddToScopeVisibleForSampleFile(sampleFileNames: Set<String>) {
-        projectViewTree.expandAll(30.seconds)
+    private fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
+        if (productCode == "RD") {
+            waitForToolWindow(toolWindowId, 90.seconds)
+            return
+        }
+
+        waitForIndicators(5.minutes)
+        withContext(OnDispatcher.EDT) {
+            getToolWindow(toolWindowId).show()
+        }
+    }
+
+    private fun Driver.waitForToolWindow(toolWindowId: String, timeout: Duration) {
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        var lastError: Throwable? = null
+
+        while (System.nanoTime() < deadline) {
+            try {
+                withContext(OnDispatcher.EDT) {
+                    getToolWindow(toolWindowId).show()
+                }
+                return
+            } catch (t: Throwable) {
+                lastError = t
+                Thread.sleep(2.seconds.inWholeMilliseconds)
+            }
+        }
+
+        throw AssertionError("Timed out waiting for tool window '$toolWindowId' to become available", lastError)
+    }
+
+    private fun ProjectViewToolWindowUi.assertAddToScopeVisibleForSampleFile(
+        sampleFileNames: Set<String>,
+        samplePath: Array<String>
+    ) {
+        expandVisiblePath(samplePath)
+
+        if (openContextMenuForPath(samplePath)) {
+            return
+        }
+
         val expandedPaths = projectViewTree.collectExpandedPaths()
         val row = expandedPaths.firstOrNull { path ->
             path.path.last() in sampleFileNames
@@ -115,6 +161,35 @@ class ScopesManagerUiTest {
         throw AssertionError(
             "Could not find sample file in Project View. Expanded paths: ${expandedPaths.map { it.path }}"
         )
+    }
+
+    private fun ProjectViewToolWindowUi.expandVisiblePath(path: Array<String>) {
+        path.dropLast(1).forEachIndexed { index, segment ->
+            val expandedPaths = projectViewTree.collectExpandedPaths()
+            val currentRow = expandedPaths.firstOrNull { it.path.last() == segment }?.row ?: return
+            val nextSegment = path[index + 1]
+            if (expandedPaths.none { it.path.last() == nextSegment }) {
+                projectViewTree.doubleClickRow(currentRow)
+                Thread.sleep(300)
+            }
+        }
+    }
+
+    private fun ProjectViewToolWindowUi.openContextMenuForPath(path: Array<String>): Boolean {
+        return try {
+            projectViewTree.rightClickPath(*path, fullMatch = false)
+            true
+        } catch (_: Exception) {
+            try {
+                projectViewTree.clickPath(*path, fullMatch = false)
+                keyboard {
+                    hotKey(KeyEvent.VK_SHIFT, KeyEvent.VK_F10)
+                }
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
     }
 
     private fun ProjectViewToolWindowUi.openContextMenuWithRightClick(

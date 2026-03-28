@@ -27,7 +27,6 @@ repositories {
 dependencies {
     intellijPlatform {
         create(ide, platformVersion)
-        bundledPlugin('com.intellij.tasks')
         testFramework TestFrameworkType.Starter.INSTANCE
         pluginVerifier()
         zipSigner()
@@ -101,7 +100,8 @@ def configureUiIntegrationTest = { Test task,
                                    String ideChannel = "release",
                                    String toolWindowId = "Project",
                                    String testProjectPath = "src/integrationTest/resources/test-projects/idea-project",
-                                   String sampleFileNames = "App,App.java" ->
+                                   String sampleFileNames = "App,App.java",
+                                   String samplePath = "src/main/java/sample/App" ->
     task.description = "Runs UI integration tests with IntelliJ Starter/Driver against ${displayName}."
     task.group = "verification"
 
@@ -113,15 +113,19 @@ def configureUiIntegrationTest = { Test task,
     task.systemProperty("uiTestToolWindowId", toolWindowId)
     task.systemProperty("uiTestProjectPath", testProjectPath)
     task.systemProperty("uiTestSampleFileNames", sampleFileNames)
+    task.systemProperty("uiTestSamplePath", samplePath)
     if (ideVersion != null) {
         task.systemProperty("uiTestIdeVersion", ideVersion)
     }
+    task.environment("GDK_BACKEND", "x11")
+    task.environment("XDG_SESSION_TYPE", "x11")
+    task.environment("WAYLAND_DISPLAY", "")
 
     task.useJUnitPlatform()
     task.dependsOn(tasks.named("prepareSandbox"))
 }
 
-tasks.register("integrationTest", Test) {
+tasks.register("integrationTest2025_1", Test) {
     configureUiIntegrationTest(delegate as Test, "IntelliJ IDEA Community 2025.1", "IC", "2025.1")
 }
 
@@ -150,6 +154,7 @@ tasks.register("integrationTestGoLandLatest", Test) {
         "release",
         "Project",
         "src/integrationTest/resources/test-projects/goland-project",
+        "main.go",
         "main.go"
     )
 }
@@ -161,9 +166,10 @@ tasks.register("integrationTestRiderLatest", Test) {
         "RD",
         null,
         "release",
-        "Solution",
+        "Project",
         "src/integrationTest/resources/test-projects/rider-project",
-        "Program.cs"
+        "Program.cs",
+        "App/Program.cs"
     )
 }
 
@@ -176,7 +182,8 @@ tasks.register("integrationTestWebStormLatest", Test) {
         "release",
         "Project",
         "src/integrationTest/resources/test-projects/webstorm-project",
-        "index.js"
+        "index.js",
+        "src/index.js"
     )
 }
 
@@ -184,7 +191,7 @@ tasks.register("integrationTestMatrix") {
     group = "verification"
     description = "Runs the UI integration tests against the configured IDE matrix."
     dependsOn(
-        tasks.named("integrationTest"),
+        tasks.named("integrationTest2025_1"),
         tasks.named("integrationTest2025_2"),
         tasks.named("integrationTest2025_3"),
         tasks.named("integrationTestLatestRelease"),
