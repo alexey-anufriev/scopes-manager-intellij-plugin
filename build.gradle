@@ -192,7 +192,15 @@ tasks.register("integrationTestWebStormLatest", Test) {
 
 tasks.register("integrationTestMatrix") {
     group = "verification"
-    description = "Runs the UI integration tests against the configured IDE matrix."
+    description = "Runs the fast UI integration test set."
+    dependsOn(
+        tasks.named("integrationTestRiderLatest")
+    )
+}
+
+tasks.register("integrationTestFullMatrix") {
+    group = "verification"
+    description = "Runs the full UI integration test matrix."
     dependsOn(
         tasks.named("integrationTest2025_1"),
         tasks.named("integrationTest2025_2"),

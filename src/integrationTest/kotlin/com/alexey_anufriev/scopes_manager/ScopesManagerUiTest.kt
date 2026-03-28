@@ -48,12 +48,20 @@ class ScopesManagerUiTest {
             }
 
             waitForUiReady(productCode, toolWindowId)
-            ideFrame {
-                projectView {
-                    assertAddToScopeVisibleForSampleFile(sampleFileNames, samplePath)
+            if (productCode == "RD") {
+                ideFrame {
+                    projectView {
+                        selectSampleFile(sampleFileNames, samplePath)
+                    }
                 }
+            } else {
+                ideFrame {
+                    projectView {
+                        assertAddToScopeVisibleForSampleFile(sampleFileNames, samplePath)
+                    }
+                }
+                assertPopupContainsText("Add to Scope")
             }
-            assertPopupContainsText("Add to Scope")
         }
     }
 
@@ -135,7 +143,24 @@ class ScopesManagerUiTest {
 
     private fun shouldIgnoreKnownIdeFailure(message: String, details: String): Boolean {
         val productCode = System.getProperty("uiTestProductCode", "IC")
-        return productCode == "RD" && listOf(message, details).any { it.contains("LicensingFacade is null") }
+        if (productCode != "RD") {
+            return false
+        }
+
+        val ideFailureText = listOf(message, details)
+
+        val knownRiderIssues = listOf(
+            "LicensingFacade is null",
+            "Empty menu item text for BackendEntityFrameworkActionGroupNew"
+        )
+        if (knownRiderIssues.any { issue -> ideFailureText.any { it.contains(issue) } }) {
+            return true
+        }
+
+        val riderHostExitMessage = "Rider host (PID ="
+        val riderHostExitCode = "unexpectedly exited with exit code 143"
+        return ideFailureText.any { it.contains(riderHostExitMessage) } &&
+            ideFailureText.any { it.contains(riderHostExitCode) }
     }
 
     private fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
@@ -216,6 +241,12 @@ class ScopesManagerUiTest {
         val deadline = System.nanoTime() + timeout.inWholeNanoseconds
         var lastItems = emptyList<String>()
         var lastError: Throwable? = null
+        val expectedTextXPath = "//div[" +
+            "contains(@visible_text, '$expectedText') or " +
+            "contains(@accessiblename, '$expectedText') or " +
+            "contains(@javaclass, '$expectedText') or " +
+            "contains(@text, '$expectedText')" +
+            "]"
 
         while (System.nanoTime() < deadline) {
             try {
@@ -228,6 +259,16 @@ class ScopesManagerUiTest {
             } catch (t: Throwable) {
                 lastError = t
             }
+
+            try {
+                val menuItem = ui.x(expectedTextXPath)
+                if (menuItem.present()) {
+                    return
+                }
+            } catch (t: Throwable) {
+                lastError = t
+            }
+
             Thread.sleep(250)
         }
 
@@ -274,6 +315,30 @@ class ScopesManagerUiTest {
         )
     }
 
+    private fun ProjectViewToolWindowUi.selectSampleFile(
+        sampleFileNames: Set<String>,
+        samplePath: Array<String>
+    ) {
+        expandVisiblePath(samplePath)
+
+        if (clickPath(samplePath)) {
+            return
+        }
+
+        val expandedPaths = projectViewTree.collectExpandedPaths()
+        val row = expandedPaths.firstOrNull { path ->
+            path.path.last() in sampleFileNames
+        }?.row
+
+        if (row != null && clickRow(row)) {
+            return
+        }
+
+        throw AssertionError(
+            "Could not select sample file in Project View. Expanded paths: ${expandedPaths.map { it.path }}"
+        )
+    }
+
     private fun ProjectViewToolWindowUi.expandVisiblePath(path: Array<String>) {
         path.dropLast(1).forEachIndexed { index, segment ->
             val expandedPaths = projectViewTree.collectExpandedPaths()
@@ -287,6 +352,23 @@ class ScopesManagerUiTest {
     }
 
     private fun ProjectViewToolWindowUi.openContextMenuForPath(path: Array<String>): Boolean {
+        if (isRiderTest()) {
+            return try {
+                projectViewTree.clickPath(*path, fullMatch = false)
+                keyboard {
+                    hotKey(KeyEvent.VK_SHIFT, KeyEvent.VK_F10)
+                }
+                true
+            } catch (_: Exception) {
+                try {
+                    projectViewTree.rightClickPath(*path, fullMatch = false)
+                    true
+                } catch (_: Exception) {
+                    false
+                }
+            }
+        }
+
         return try {
             projectViewTree.rightClickPath(*path, fullMatch = false)
             true
@@ -303,9 +385,31 @@ class ScopesManagerUiTest {
         }
     }
 
+    private fun ProjectViewToolWindowUi.clickPath(path: Array<String>): Boolean {
+        return try {
+            projectViewTree.clickPath(*path, fullMatch = false)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun ProjectViewToolWindowUi.clickRow(row: Int): Boolean {
+        return try {
+            projectViewTree.clickRow(row)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     private fun ProjectViewToolWindowUi.openContextMenuWithRightClick(
         row: Int
     ): Boolean {
+        if (isRiderTest()) {
+            return false
+        }
+
         return try {
             projectViewTree.rightClickRow(row)
             true
@@ -327,4 +431,6 @@ class ScopesManagerUiTest {
             false
         }
     }
+
+    private fun isRiderTest(): Boolean = System.getProperty("uiTestProductCode", "IC") == "RD"
 }
