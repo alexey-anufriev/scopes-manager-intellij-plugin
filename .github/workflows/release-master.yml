@@ -40,7 +40,7 @@ jobs:
       run: ./gradlew test
 
     - name: Run UI Integration Tests
-      run: xvfb-run -a ./gradlew integrationTestMatrix
+      run: xvfb-run -a ./gradlew integrationTestMatrix --stacktrace --info --no-daemon
 
     - name: Run Plugin Verification
       run: ./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier
