@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'com.alexey-anufriev'
-version = '1.13.0'
+version = '1.14.0'
 
 def ide = (findProperty('ide') ?: 'IC').toString()
 def platformVersion = '2025.1'
