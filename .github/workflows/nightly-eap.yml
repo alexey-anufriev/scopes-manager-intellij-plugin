@@ -1,13 +1,12 @@
-name: Build Plugin Snapshot
+name: Nightly EAP Compatibility Check
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  schedule:
+    - cron: '0 21 * * *'
+  workflow_dispatch:
 
 jobs:
-  build:
+  eap-compatibility:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,8 +34,8 @@ jobs:
     - name: Run Tests
       run: ./gradlew test
 
-    - name: Run UI Integration Tests
-      run: xvfb-run -a ./gradlew integrationTestMatrix --stacktrace --info --no-daemon
+    - name: Run EAP UI Integration Tests
+      run: xvfb-run -a ./gradlew integrationTestEapMatrix --stacktrace --info --no-daemon
 
     - name: Run Plugin Verification
       run: ./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier
@@ -45,7 +44,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: verify-test-results
+        name: nightly-eap-test-results
         path: |
           build/test-results/
           build/reports/tests/

@@ -152,19 +152,62 @@ tasks.register("integrationTest2025_3", Test) {
     ])
 }
 
-tasks.register("integrationTestLatestRelease", Test) {
+tasks.register("integrationTestIdeaLatestRelease", Test) {
     configureUiIntegrationTest(delegate as Test, [
         displayName: "latest IntelliJ IDEA release",
         productCode: "IU"
     ])
 }
 
-tasks.register("integrationTestLatestEap", Test) {
+tasks.register("integrationTestIdeaLatestEap", Test) {
     configureUiIntegrationTest(delegate as Test, [
         displayName: "latest IntelliJ IDEA EAP",
         productCode: "IU",
         ideChannel : "eap"
     ])
+}
+
+tasks.register("integrationTestGoLandLatestEap", Test) {
+    configureUiIntegrationTest(
+        delegate as Test,
+        [
+            displayName    : "latest GoLand EAP",
+            productCode    : "GO",
+            ideChannel     : "eap",
+            testProjectPath: "src/integrationTest/resources/test-projects/goland-project",
+            sampleFileNames: "main.go",
+            samplePath     : "main.go"
+        ]
+    )
+}
+
+tasks.register("integrationTestRiderLatestEap", Test) {
+    configureUiIntegrationTest(
+        delegate as Test,
+        [
+            displayName    : "latest Rider EAP",
+            productCode    : "RD",
+            ideChannel     : "eap",
+            testProjectPath: "src/integrationTest/resources/test-projects/rider-project",
+            sampleFileNames: "Program.cs",
+            samplePath     : "App/Program.cs",
+            activateTrial  : true
+        ]
+    )
+}
+
+tasks.register("integrationTestWebStormLatestEap", Test) {
+    configureUiIntegrationTest(
+        delegate as Test,
+        [
+            displayName    : "latest WebStorm EAP",
+            productCode    : "WS",
+            ideChannel     : "eap",
+            testProjectPath: "src/integrationTest/resources/test-projects/webstorm-project",
+            sampleFileNames: "index.js",
+            samplePath     : "src/index.js"
+        ]
+    )
 }
 
 tasks.register("integrationTestGoLandLatest", Test) {
@@ -207,20 +250,42 @@ tasks.register("integrationTestWebStormLatest", Test) {
     )
 }
 
-tasks.register("integrationTestMatrix") {
-    group = "verification"
-    description = "Runs the full UI integration test matrix."
-    dependsOn(
-        tasks.named("integrationTest2025_1"),
-        tasks.named("integrationTest2025_2"),
-        tasks.named("integrationTest2025_3"),
-        tasks.named("integrationTestLatestRelease"),
-        tasks.named("integrationTestLatestEap"),
-        tasks.named("integrationTestGoLandLatest"),
-        tasks.named("integrationTestRiderLatest"),
-        tasks.named("integrationTestWebStormLatest")
-    )
+def stableUiIntegrationTests = [
+    "integrationTest2025_1",
+    "integrationTest2025_2",
+    "integrationTest2025_3",
+    "integrationTestIdeaLatestRelease",
+    "integrationTestGoLandLatest",
+    "integrationTestRiderLatest",
+    "integrationTestWebStormLatest",
+]
+
+def eapUiIntegrationTests = [
+    "integrationTestIdeaLatestEap",
+    "integrationTestGoLandLatestEap",
+    "integrationTestRiderLatestEap",
+    "integrationTestWebStormLatestEap",
+]
+
+def registerIntegrationTestMatrix = { String taskName, String description, List<String> taskNames ->
+    tasks.register(taskName) {
+        group = "verification"
+        this.description = description
+        dependsOn(taskNames.collect { tasks.named(it) })
+    }
 }
+
+registerIntegrationTestMatrix(
+    "integrationTestMatrix",
+    "Runs the full UI integration test matrix.",
+    stableUiIntegrationTests + eapUiIntegrationTests
+)
+
+registerIntegrationTestMatrix(
+    "integrationTestEapMatrix",
+    "Runs the EAP UI integration test matrix.",
+    eapUiIntegrationTests
+)
 
 tasks.register("runGoland", GradleBuild) {
     group = "intellij"
