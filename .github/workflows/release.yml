@@ -14,10 +14,10 @@ jobs:
 
     - name: Fetch Sources
       uses: actions/checkout@v6.0.2
-    
+
     - name: Gradle Wrapper Validation
       uses: gradle/actions/wrapper-validation@v6
-    
+
     - name: Setup Java
       uses: actions/setup-java@v5.2.0
       with:
@@ -85,4 +85,5 @@ jobs:
         prerelease: false
 
     - name: Check Disk Space
+      if: always()
       run: df -h
