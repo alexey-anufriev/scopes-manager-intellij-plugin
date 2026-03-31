@@ -5,7 +5,6 @@
 
     <description><![CDATA[
         <h1>Scopes Manager</h1>
-        <br/>
 
         <a href="https://github.com/alexey-anufriev/scopes-manager-intellij-plugin">GitHub</a> |
         <a href="https://github.com/alexey-anufriev/scopes-manager-intellij-plugin/issues">Issues</a>
@@ -26,8 +25,7 @@
         </ul>
 
         <br/>
-        <br/>
-        If this plugin saved you time, you can <a href="https://www.buymeacoffee.com/alexey.anufriev">say thanks with a coffee</a> ☕
+        If this plugin saved you time, you can <a href="https://www.buymeacoffee.com/alexey.anufriev">say thanks with a coffee</a>.
         <br/>
         <br/>
     ]]></description>
