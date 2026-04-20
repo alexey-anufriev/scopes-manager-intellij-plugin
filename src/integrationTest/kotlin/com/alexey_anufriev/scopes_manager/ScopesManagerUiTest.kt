@@ -21,6 +21,8 @@ import com.intellij.ide.starter.models.TestCase
 import com.intellij.ide.starter.plugins.PluginConfigurator
 import com.intellij.ide.starter.project.LocalProjectInfo
 import com.intellij.ide.starter.runner.Starter
+import com.intellij.ide.starter.runner.SetupException
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
@@ -55,13 +57,21 @@ class ScopesManagerUiTest {
 
     @Test
     fun pluginStartsWithoutUiErrorsOnProjectOpen() {
-        runUiTest { config ->
-            if (config.activateTrial && config.productCode == "RD") {
-                handleRiderLicenseDialogIfShown()
-            }
+        try {
+            runUiTest { config ->
+                if (config.activateTrial && config.productCode == "RD") {
+                    handleRiderLicenseDialogIfShown()
+                }
 
-            waitForUiReady(config.productCode, config.toolWindowId)
-            verifyProductBehavior(config)
+                waitForUiReady(config.productCode, config.toolWindowId)
+                verifyProductBehavior(config)
+            }
+        } catch (throwable: Throwable) {
+            val config = readConfig()
+            if (isUnavailableEap(config, throwable)) {
+                assumeTrue(false, "Skipping EAP UI test for ${config.testNameSuffix}: JetBrains EAP build is currently unavailable or expired. Original error: ${throwable.message.orEmpty()}")
+            }
+            throw throwable
         }
     }
 
@@ -77,15 +87,27 @@ class ScopesManagerUiTest {
             else -> config.ideVersion?.let { testCase.withVersion(it) } ?: testCase.useRelease()
         }
 
-        Starter.newContext(
+        val context = Starter.newContext(
             "scopes-manager-ui-smoke-${config.testNameSuffix}",
             ideUnderTest
         ).apply {
             addProjectToTrustedLocations(config.projectHome)
             PluginConfigurator(this).installPluginFromFolder(File(System.getProperty("path.to.build.plugin")))
-        }.runIdeWithDriver().useDriverAndCloseIde {
+        }
+
+        context.runIdeWithDriver().useDriverAndCloseIde {
             assertion(config)
         }
+    }
+
+    private fun isUnavailableEap(config: UiTestConfig, throwable: Throwable): Boolean {
+        if (config.ideChannel != "eap") {
+            return false
+        }
+
+        val message = throwable.message.orEmpty()
+        return throwable is SetupException &&
+                (message.contains("expired on") || message.contains("Failed to find specific release"))
     }
 
     private fun ideProduct(productCode: String): IdeInfo = when (productCode) {
