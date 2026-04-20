@@ -32,6 +32,7 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends optional="true" config-file="plugin-rider.xml">com.intellij.modules.rider</depends>
+    <depends optional="true" config-file="plugin-mcp.xml">com.intellij.mcpServer</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.alexey_anufriev.scopes_manager.ScopesManagerInitializer" />
@@ -75,6 +76,9 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.16.0: MCP Server integration. When the bundled MCP Server plugin is enabled, Scopes Manager exposes two tools to MCP clients (Claude Code, Cursor, etc.): "list_scopes" and "list_files_in_scope". Lets AI assistants reason about your scope definitions.
+        <br/>
+        <br/>
         1.14.0: Unified compatibility approach: left unbound but constantly validated.
         <br/>
         <br/>
