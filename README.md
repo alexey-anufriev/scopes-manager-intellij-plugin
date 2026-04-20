@@ -48,6 +48,17 @@ Allows to remove selected resources from the scope.
 
 Allows to clear the scope content completely.
 
+### MCP Server Integration
+
+When the bundled [MCP Server](https://plugins.jetbrains.com/plugin/26071-mcp-server) plugin is enabled,
+Scopes Manager exposes two tools to MCP clients (Claude Code, Cursor, etc.):
+
+* `list_scopes` — returns the names of all user-defined scopes (local + shared).
+* `list_files_in_scope(name)` — returns the files and folders that comprise the given scope,
+  with a trailing `/` on recursive folders.
+
+This lets AI assistants reason about how the project is structured beyond the file tree.
+
 ## Sample View
 
 ![legacy scope](docs/assigned-scopes.png)

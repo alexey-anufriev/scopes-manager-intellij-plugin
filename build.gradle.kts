@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.alexey-anufriev"
-version = "1.14.0"
+version = "1.16.0"
 
 val ide = (findProperty("ide") ?: "IC").toString()
 val platformVersion = "2025.1"
@@ -31,6 +31,7 @@ repositories {
 dependencies {
     intellijPlatform {
         create(ide, platformVersion)
+        plugin("com.intellij.mcpServer", "252.28238.29")
         testFramework(TestFrameworkType.Starter)
         pluginVerifier()
         zipSigner()
