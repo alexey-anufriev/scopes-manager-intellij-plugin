@@ -37,7 +37,11 @@ jobs:
           MATRIX="$(printf '%s' "$ALL_MATRIX" | jq -c --arg targets "$TARGETS" '[.[] | select($targets | contains("," + .name + ","))]')"
         fi
 
-        echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+        {
+          echo 'matrix<<EOF'
+          echo "$MATRIX"
+          echo 'EOF'
+        } >> "$GITHUB_OUTPUT"
 
   build:
     needs: prepare
