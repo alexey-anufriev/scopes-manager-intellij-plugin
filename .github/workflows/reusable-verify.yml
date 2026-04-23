@@ -80,7 +80,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact_prefix }}-plugin-sandbox
-        path: build/idea-sandbox/plugins/*
+        path: .intellijPlatform/sandbox/**
         if-no-files-found: error
 
   verify:
@@ -132,7 +132,10 @@ jobs:
       shell: bash
       run: |
         echo "BUILT_PLUGIN_ARCHIVE=$(find "$GITHUB_WORKSPACE/.ci/plugin-archive" -type f -name '*.zip' | head -n 1)" >> "$GITHUB_ENV"
-        echo "BUILT_PLUGIN_DIR=$(find "$GITHUB_WORKSPACE/.ci/plugin-sandbox" -mindepth 1 -maxdepth 1 -type d | head -n 1)" >> "$GITHUB_ENV"
+        PLUGIN_XML_PATH="$(find "$GITHUB_WORKSPACE/.ci/plugin-sandbox" -type f -path '*/plugins/*/META-INF/plugin.xml' | head -n 1)"
+        PLUGIN_META_INF_DIR="$(dirname "$PLUGIN_XML_PATH")"
+        BUILT_PLUGIN_DIR="$(dirname "$PLUGIN_META_INF_DIR")"
+        echo "BUILT_PLUGIN_DIR=$BUILT_PLUGIN_DIR" >> "$GITHUB_ENV"
 
     - name: Run Verification Task
       shell: bash
