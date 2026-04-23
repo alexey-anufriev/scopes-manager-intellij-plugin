@@ -12,7 +12,35 @@ on:
         default: full
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.select-matrix.outputs.matrix }}
+
+    steps:
+    - name: Select Verification Matrix
+      id: select-matrix
+      shell: bash
+      run: |
+        ALL_MATRIX='[
+          {"name":"unit-tests","command":"./gradlew test","artifact_suffix":"unit-tests","xvfb":false},
+          {"name":"plugin-verifier","command":"./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier","artifact_suffix":"plugin-verifier","xvfb":false},
+          {"name":"legacy-ui","command":"./gradlew integrationTestLegacyMatrix --stacktrace --info --no-daemon","artifact_suffix":"legacy-ui","xvfb":true},
+          {"name":"stable-ui","command":"./gradlew integrationTestStableMatrix --stacktrace --info --no-daemon","artifact_suffix":"stable-ui","xvfb":true},
+          {"name":"eap-ui","command":"./gradlew integrationTestEapMatrix --stacktrace --info --no-daemon","artifact_suffix":"eap-ui","xvfb":true}
+        ]'
+
+        if [ "${{ inputs.matrix_targets }}" = "full" ]; then
+          MATRIX="$ALL_MATRIX"
+        else
+          TARGETS=",${{ inputs.matrix_targets }},"
+          MATRIX="$(printf '%s' "$ALL_MATRIX" | jq -c --arg targets "$TARGETS" '[.[] | select($targets | contains("," + .name + ","))]')"
+        fi
+
+        echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: prepare
     runs-on: ubuntu-latest
 
     steps:
@@ -52,35 +80,15 @@ jobs:
         if-no-files-found: error
 
   verify:
-    needs: build
-    if: |
-      inputs.matrix_targets == 'full' ||
-      contains(format(',{0},', inputs.matrix_targets), format(',{0},', matrix.name))
+    needs:
+    - prepare
+    - build
+    if: ${{ needs.prepare.outputs.matrix != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-        - name: unit-tests
-          command: ./gradlew test
-          artifact_suffix: unit-tests
-          xvfb: false
-        - name: plugin-verifier
-          command: ./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier
-          artifact_suffix: plugin-verifier
-          xvfb: false
-        - name: legacy-ui
-          command: ./gradlew integrationTestLegacyMatrix --stacktrace --info --no-daemon
-          artifact_suffix: legacy-ui
-          xvfb: true
-        - name: stable-ui
-          command: ./gradlew integrationTestStableMatrix --stacktrace --info --no-daemon
-          artifact_suffix: stable-ui
-          xvfb: true
-        - name: eap-ui
-          command: ./gradlew integrationTestEapMatrix --stacktrace --info --no-daemon
-          artifact_suffix: eap-ui
-          xvfb: true
+        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
 
     steps:
     - name: Free Disk Space
