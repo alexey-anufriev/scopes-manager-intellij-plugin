@@ -1,5 +1,6 @@
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.testing.Test
+import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
@@ -15,6 +16,8 @@ version = "1.14.0"
 
 val ide = (findProperty("ide") ?: "IC").toString()
 val platformVersion = "2025.1"
+val builtPluginDir = findProperty("builtPluginDir")?.toString()
+val builtPluginArchive = findProperty("builtPluginArchive")?.toString()
 
 val integrationTest = sourceSets.create("integrationTest") {
     compileClasspath += sourceSets["main"].output
@@ -117,7 +120,8 @@ fun Test.configureUiIntegrationTest(sourceSet: SourceSet, config: UiIntegrationT
     testClassesDirs = sourceSet.output.classesDirs
     classpath = sourceSet.runtimeClasspath
 
-    systemProperty("path.to.build.plugin", prepareSandbox.get().pluginDirectory.get().asFile.absolutePath)
+    val pluginPath = builtPluginDir ?: prepareSandbox.get().pluginDirectory.get().asFile.absolutePath
+    systemProperty("path.to.build.plugin", pluginPath)
     systemProperty("uiTestProductCode", config.productCode)
     systemProperty("uiTestIdeChannel", config.ideChannel)
     systemProperty("uiTestToolWindowId", config.toolWindowId)
@@ -132,7 +136,22 @@ fun Test.configureUiIntegrationTest(sourceSet: SourceSet, config: UiIntegrationT
     environment("WAYLAND_DISPLAY", "")
 
     useJUnitPlatform()
-    dependsOn(prepareSandbox)
+    if (builtPluginDir == null) {
+        dependsOn(prepareSandbox)
+    }
+}
+
+tasks.named<VerifyPluginTask>("verifyPlugin") {
+    builtPluginArchive?.let {
+        archiveFile.set(file(it))
+    }
+}
+
+tasks.named<PublishPluginTask>("publishPlugin") {
+    builtPluginArchive?.let {
+        archiveFile.set(file(it))
+        setDependsOn(emptyList<Any>()) // avoid rebuild
+    }
 }
 
 tasks.register<Test>("integrationTest2025_1") {
@@ -272,10 +291,13 @@ tasks.register<Test>("integrationTestWebStormLatest") {
     )
 }
 
-val stableUiIntegrationTests = listOf(
+val legacyUiIntegrationTests = listOf(
     "integrationTest2025_1",
     "integrationTest2025_2",
     "integrationTest2025_3",
+)
+
+val stableUiIntegrationTests = listOf(
     "integrationTestIdeaLatestRelease",
     "integrationTestGoLandLatest",
     "integrationTestRiderLatest",
@@ -298,15 +320,27 @@ fun registerIntegrationTestMatrix(taskName: String, description: String, taskNam
 }
 
 registerIntegrationTestMatrix(
-    taskName = "integrationTestMatrix",
-    description = "Runs the full UI integration test matrix.",
-    taskNames = stableUiIntegrationTests + eapUiIntegrationTests,
+    taskName = "integrationTestLegacyMatrix",
+    description = "Runs the legacy UI integration test matrix.",
+    taskNames = legacyUiIntegrationTests,
+)
+
+registerIntegrationTestMatrix(
+    taskName = "integrationTestStableMatrix",
+    description = "Runs the stable UI integration test matrix.",
+    taskNames = stableUiIntegrationTests,
 )
 
 registerIntegrationTestMatrix(
     taskName = "integrationTestEapMatrix",
     description = "Runs the EAP UI integration test matrix.",
     taskNames = eapUiIntegrationTests,
+)
+
+registerIntegrationTestMatrix(
+    taskName = "integrationTestMatrix",
+    description = "Runs the full UI integration test matrix.",
+    taskNames = legacyUiIntegrationTests + stableUiIntegrationTests + eapUiIntegrationTests,
 )
 
 tasks.register<GradleBuild>("runGoland") {
