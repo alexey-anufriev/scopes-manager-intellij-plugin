@@ -1,0 +1,151 @@
+name: Reusable Verify
+
+on:
+  workflow_call:
+    inputs:
+      artifact_prefix:
+        required: true
+        type: string
+      matrix_targets:
+        required: false
+        type: string
+        default: full
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
+
+    - name: Fetch Sources
+      uses: actions/checkout@v6.0.2
+
+    - name: Gradle Wrapper Validation
+      uses: gradle/actions/wrapper-validation@v6
+
+    - name: Setup Java
+      uses: actions/setup-java@v5.2.0
+      with:
+        distribution: corretto
+        java-version: 21
+        cache: gradle
+
+    - name: Build Plugin Outputs
+      run: ./gradlew buildPlugin prepareSandbox
+
+    - name: Upload Plugin Archive
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact_prefix }}-plugin-archive
+        path: build/distributions/*.zip
+        if-no-files-found: error
+
+    - name: Upload Prepared Sandbox
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact_prefix }}-plugin-sandbox
+        path: build/idea-sandbox/plugins/*
+        if-no-files-found: error
+
+  verify:
+    needs: build
+    if: |
+      inputs.matrix_targets == 'full' ||
+      contains(format(',{0},', inputs.matrix_targets), format(',{0},', matrix.name))
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - name: unit-tests
+          command: ./gradlew test
+          artifact_suffix: unit-tests
+          xvfb: false
+        - name: plugin-verifier
+          command: ./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier
+          artifact_suffix: plugin-verifier
+          xvfb: false
+        - name: legacy-ui
+          command: ./gradlew integrationTestLegacyMatrix --stacktrace --info --no-daemon
+          artifact_suffix: legacy-ui
+          xvfb: true
+        - name: stable-ui
+          command: ./gradlew integrationTestStableMatrix --stacktrace --info --no-daemon
+          artifact_suffix: stable-ui
+          xvfb: true
+        - name: eap-ui
+          command: ./gradlew integrationTestEapMatrix --stacktrace --info --no-daemon
+          artifact_suffix: eap-ui
+          xvfb: true
+
+    steps:
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
+
+    - name: Fetch Sources
+      uses: actions/checkout@v6.0.2
+
+    - name: Gradle Wrapper Validation
+      uses: gradle/actions/wrapper-validation@v6
+
+    - name: Setup Java
+      uses: actions/setup-java@v5.2.0
+      with:
+        distribution: corretto
+        java-version: 21
+        cache: gradle
+
+    - name: Install Xvfb
+      run: sudo apt-get update && sudo apt-get install -y xvfb
+
+    - name: Download Plugin Archive
+      uses: actions/download-artifact@v7
+      with:
+        name: ${{ inputs.artifact_prefix }}-plugin-archive
+        path: .ci/plugin-archive
+
+    - name: Download Prepared Sandbox
+      uses: actions/download-artifact@v7
+      with:
+        name: ${{ inputs.artifact_prefix }}-plugin-sandbox
+        path: .ci/plugin-sandbox
+
+    - name: Resolve Built Plugin Paths
+      shell: bash
+      run: |
+        echo "BUILT_PLUGIN_ARCHIVE=$(find "$GITHUB_WORKSPACE/.ci/plugin-archive" -type f -name '*.zip' | head -n 1)" >> "$GITHUB_ENV"
+        echo "BUILT_PLUGIN_DIR=$(find "$GITHUB_WORKSPACE/.ci/plugin-sandbox" -mindepth 1 -maxdepth 1 -type d | head -n 1)" >> "$GITHUB_ENV"
+
+    - name: Run Verification Task
+      shell: bash
+      run: |
+        cmd=(${{ matrix.command }})
+        if [ "${{ matrix.name }}" = "plugin-verifier" ]; then
+          cmd+=("-PbuiltPluginArchive=$BUILT_PLUGIN_ARCHIVE")
+        fi
+        if [ "${{ matrix.xvfb }}" = "true" ]; then
+          cmd+=("-PbuiltPluginDir=$BUILT_PLUGIN_DIR")
+        fi
+
+        if [ "${{ matrix.xvfb }}" = "true" ]; then
+          xvfb-run -a "${cmd[@]}"
+        else
+          "${cmd[@]}"
+        fi
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact_prefix }}-test-results-${{ matrix.artifact_suffix }}
+        path: |
+          build/test-results/
+          build/reports/tests/
+          out/ide-tests/tests/
+        if-no-files-found: warn
