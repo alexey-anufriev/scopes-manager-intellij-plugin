@@ -126,7 +126,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y xvfb
 
     - name: Download Plugin Archive
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: ${{ inputs.artifact_prefix }}-plugin-archive
         path: .ci/plugin-archive
