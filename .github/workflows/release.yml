@@ -42,7 +42,7 @@ jobs:
         echo "version=$(echo $VERSION)" >> $GITHUB_OUTPUT
 
     - name: Download Plugin Archive
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: release-plugin-archive
         path: build/distributions
