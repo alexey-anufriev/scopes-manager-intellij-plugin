@@ -7,50 +7,8 @@ on:
 
 jobs:
   eap-compatibility:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Free Disk Space
-      uses: jlumbroso/free-disk-space@v1.3.1
-      with:
-        tool-cache: true
-
-    - name: Fetch Sources
-      uses: actions/checkout@v6.0.2
-
-    - name: Gradle Wrapper Validation
-      uses: gradle/actions/wrapper-validation@v6
-
-    - name: Setup Java
-      uses: actions/setup-java@v5.2.0
-      with:
-        distribution: corretto
-        java-version: 21
-        cache: gradle
-
-    - name: Install Xvfb
-      run: sudo apt-get update && sudo apt-get install -y xvfb
-
-    - name: Run Tests
-      run: ./gradlew test
-
-    - name: Run EAP UI Integration Tests
-      run: xvfb-run -a ./gradlew integrationTestEapMatrix --stacktrace --info --no-daemon
-
-    - name: Run Plugin Verification
-      run: ./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier
-
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v7
-      with:
-        name: nightly-eap-test-results
-        path: |
-          build/test-results/
-          build/reports/tests/
-          out/ide-tests/tests/
-        if-no-files-found: warn
-
-    - name: Check Disk Space
-      if: always()
-      run: df -h
+    name: EAP Compatibility
+    uses: ./.github/workflows/reusable-verify.yml
+    with:
+      artifact_prefix: nightly-eap
+      matrix_targets: unit-tests,plugin-verifier,eap-ui

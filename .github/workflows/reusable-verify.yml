@@ -1,0 +1,215 @@
+name: Reusable Verify
+
+on:
+  workflow_call:
+    inputs:
+      artifact_prefix:
+        required: true
+        type: string
+      matrix_targets:
+        required: false
+        type: string
+        default: full
+
+jobs:
+  prepare:
+    name: Prepare Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.select-matrix.outputs.matrix }}
+
+    steps:
+    - name: Select Verification Matrix
+      id: select-matrix
+      shell: bash
+      run: |
+        ALL_MATRIX='[
+          {"name":"unit-tests","command":"./gradlew test","artifact_suffix":"unit-tests","xvfb":false},
+          {"name":"plugin-verifier","command":"./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier","artifact_suffix":"plugin-verifier","xvfb":false},
+          {"name":"legacy-ui","command":"./gradlew integrationTestLegacyMatrix --stacktrace --info --no-daemon","artifact_suffix":"legacy-ui","xvfb":true},
+          {"name":"stable-ui","command":"./gradlew integrationTestStableMatrix --stacktrace --info --no-daemon","artifact_suffix":"stable-ui","xvfb":true},
+          {"name":"eap-ui","command":"./gradlew integrationTestEapMatrix --stacktrace --info --no-daemon","artifact_suffix":"eap-ui","xvfb":true}
+        ]'
+
+        if [ "${{ inputs.matrix_targets }}" = "full" ]; then
+          MATRIX="$ALL_MATRIX"
+        else
+          TARGETS=",${{ inputs.matrix_targets }},"
+          MATRIX="$(printf '%s' "$ALL_MATRIX" | jq -c --arg targets "$TARGETS" '[.[] | select($targets | contains("," + .name + ","))]')"
+        fi
+
+        {
+          echo 'matrix<<EOF'
+          echo "$MATRIX"
+          echo 'EOF'
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Trace Selected Matrix
+      shell: bash
+      run: |
+        echo "artifact_prefix=${{ inputs.artifact_prefix }}"
+        echo "matrix_targets=${{ inputs.matrix_targets }}"
+        echo "selected_matrix=${{ steps.select-matrix.outputs.matrix }}"
+
+  build:
+    name: Build Plugin Artifact
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
+
+    - name: Fetch Sources
+      uses: actions/checkout@v6.0.2
+
+    - name: Gradle Wrapper Validation
+      uses: gradle/actions/wrapper-validation@v6
+
+    - name: Setup Java
+      uses: actions/setup-java@v5.2.0
+      with:
+        distribution: corretto
+        java-version: 21
+        cache: gradle
+
+    - name: Build Plugin Outputs
+      run: ./gradlew buildPlugin
+
+    - name: Trace Build Outputs
+      shell: bash
+      run: |
+        echo "build_distributions:"
+        ls -lah build/distributions
+
+    - name: Upload Plugin Archive
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact_prefix }}-plugin-archive
+        path: build/distributions/*.zip
+        if-no-files-found: error
+
+  verify:
+    name: Verify ${{ matrix.name }}
+    needs:
+    - prepare
+    - build
+    if: ${{ needs.prepare.outputs.matrix != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+
+    steps:
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
+
+    - name: Fetch Sources
+      uses: actions/checkout@v6.0.2
+
+    - name: Gradle Wrapper Validation
+      uses: gradle/actions/wrapper-validation@v6
+
+    - name: Setup Java
+      uses: actions/setup-java@v5.2.0
+      with:
+        distribution: corretto
+        java-version: 21
+        cache: gradle
+
+    - name: Install Xvfb
+      run: sudo apt-get update && sudo apt-get install -y xvfb
+
+    - name: Download Plugin Archive
+      uses: actions/download-artifact@v7
+      with:
+        name: ${{ inputs.artifact_prefix }}-plugin-archive
+        path: .ci/plugin-archive
+
+    - name: Trace Downloaded Artifact
+      shell: bash
+      run: |
+        echo "downloaded_artifact_name=${{ inputs.artifact_prefix }}-plugin-archive"
+        echo "downloaded_files:"
+        find "$GITHUB_WORKSPACE/.ci/plugin-archive" -maxdepth 2 -type f -print | sort
+
+    - name: Resolve Built Plugin Paths
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        BUILT_PLUGIN_ARCHIVE="$(find "$GITHUB_WORKSPACE/.ci/plugin-archive" -type f -name '*.zip' | head -n 1)"
+        if [ -z "$BUILT_PLUGIN_ARCHIVE" ]; then
+          echo "Built plugin archive not found under $GITHUB_WORKSPACE/.ci/plugin-archive" >&2
+          exit 1
+        fi
+
+        EXTRACT_DIR="$GITHUB_WORKSPACE/.ci/extracted-plugin"
+        rm -rf "$EXTRACT_DIR"
+        mkdir -p "$EXTRACT_DIR"
+        unzip -q "$BUILT_PLUGIN_ARCHIVE" -d "$EXTRACT_DIR"
+
+        BUILT_PLUGIN_DIR="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+        if [ -z "$BUILT_PLUGIN_DIR" ]; then
+          echo "Built plugin directory not found after extracting $BUILT_PLUGIN_ARCHIVE" >&2
+          exit 1
+        fi
+
+        echo "BUILT_PLUGIN_ARCHIVE=$BUILT_PLUGIN_ARCHIVE" >> "$GITHUB_ENV"
+        echo "BUILT_PLUGIN_DIR=$BUILT_PLUGIN_DIR" >> "$GITHUB_ENV"
+
+        echo "built_plugin_archive=$BUILT_PLUGIN_ARCHIVE"
+        echo "built_plugin_dir=$BUILT_PLUGIN_DIR"
+        echo "extracted_plugin_contents:"
+        find "$BUILT_PLUGIN_DIR" -maxdepth 2 -print | sort
+
+    - name: Run Verification Task
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        echo "matrix_name=${{ matrix.name }}"
+        echo "matrix_command=${{ matrix.command }}"
+        echo "matrix_artifact_suffix=${{ matrix.artifact_suffix }}"
+        echo "matrix_xvfb=${{ matrix.xvfb }}"
+
+        cmd=(${{ matrix.command }})
+        if [ "${{ matrix.name }}" = "plugin-verifier" ]; then
+          cmd+=("-PbuiltPluginArchive=$BUILT_PLUGIN_ARCHIVE")
+        fi
+        if [ "${{ matrix.xvfb }}" = "true" ]; then
+          cmd+=("-PbuiltPluginDir=$BUILT_PLUGIN_DIR")
+        fi
+
+        echo "resolved_command=${cmd[*]}"
+
+        LOG_FILE="$RUNNER_TEMP/verify-command-${{ matrix.name }}.log"
+
+        if [ "${{ matrix.xvfb }}" = "true" ]; then
+          xvfb-run -a "${cmd[@]}" 2>&1 | tee "$LOG_FILE"
+        else
+          "${cmd[@]}" 2>&1 | tee "$LOG_FILE"
+        fi
+
+        FORBIDDEN_TASKS='^> Task :(buildPlugin|prepareSandbox)( |$)'
+        if grep -Eq "$FORBIDDEN_TASKS" "$LOG_FILE"; then
+          echo "Forbidden rebuild task execution detected in verify job:" >&2
+          grep -En "$FORBIDDEN_TASKS" "$LOG_FILE" >&2
+          exit 1
+        fi
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact_prefix }}-test-results-${{ matrix.artifact_suffix }}
+        path: |
+          build/test-results/
+          build/reports/tests/
+          out/ide-tests/tests/
+        if-no-files-found: warn

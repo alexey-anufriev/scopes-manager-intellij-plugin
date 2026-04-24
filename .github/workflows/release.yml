@@ -7,15 +7,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify:
+    name: Verify Release Candidate
+    uses: ./.github/workflows/reusable-verify.yml
+    with:
+      artifact_prefix: release
+      matrix_targets: full
+
   release:
+    needs:
+    - verify
     runs-on: ubuntu-latest
 
     steps:
-    - name: Free Disk Space
-      uses: jlumbroso/free-disk-space@v1.3.1
-      with:
-        tool-cache: true
-
     - name: Fetch Sources
       uses: actions/checkout@v6.0.2
 
@@ -29,9 +33,6 @@ jobs:
         java-version: 21
         cache: gradle
 
-    - name: Install Xvfb
-      run: sudo apt-get update && sudo apt-get install -y xvfb
-
     - name: Export Properties
       id: properties
       shell: bash
@@ -40,26 +41,12 @@ jobs:
         VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
         echo "version=$(echo $VERSION)" >> $GITHUB_OUTPUT
 
-    - name: Run Tests
-      run: ./gradlew test
-
-    - name: Run UI Integration Tests
-      run: xvfb-run -a ./gradlew integrationTestMatrix --stacktrace --info --no-daemon
-
-    - name: Run Plugin Verification
-      run: ./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier
-
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v7
+    - name: Download Plugin Archive
+      uses: actions/download-artifact@v7
       with:
-        name: release-test-results
-        path: |
-          build/test-results/
-          build/reports/tests/
-          out/ide-tests/tests/
-        if-no-files-found: warn
-      
+        name: release-plugin-archive
+        path: build/distributions
+
     - name: Prepare Plugin Artifact
       id: artifact
       shell: bash
@@ -68,6 +55,7 @@ jobs:
         FILENAME=`ls *.zip`
         CUT_FILENAME=${FILENAME:0:-4}
         echo "filename=$(echo $CUT_FILENAME)" >> $GITHUB_OUTPUT
+        echo "archive_path=${{ github.workspace }}/build/distributions/$FILENAME" >> $GITHUB_OUTPUT
       
     - name: Upload artifact
       uses: actions/upload-artifact@v7
@@ -78,7 +66,7 @@ jobs:
     - name: Publish Plugin
       env:
         PUBLISH_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
-      run: ./gradlew publishPlugin
+      run: ./gradlew publishPlugin -PbuiltPluginArchive="${{ steps.artifact.outputs.archive_path }}"
 
     - name: Create Release
       uses: softprops/action-gh-release@v3.0.0
@@ -87,7 +75,3 @@ jobs:
         name: v${{ steps.properties.outputs.version }}
         draft: false
         prerelease: false
-
-    - name: Check Disk Space
-      if: always()
-      run: df -h
