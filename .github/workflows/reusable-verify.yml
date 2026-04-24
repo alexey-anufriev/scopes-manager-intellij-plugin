@@ -171,6 +171,8 @@ jobs:
     - name: Run Verification Task
       shell: bash
       run: |
+        set -euo pipefail
+
         echo "matrix_name=${{ matrix.name }}"
         echo "matrix_command=${{ matrix.command }}"
         echo "matrix_artifact_suffix=${{ matrix.artifact_suffix }}"
@@ -186,10 +188,19 @@ jobs:
 
         echo "resolved_command=${cmd[*]}"
 
+        LOG_FILE="$RUNNER_TEMP/verify-command-${{ matrix.name }}.log"
+
         if [ "${{ matrix.xvfb }}" = "true" ]; then
-          xvfb-run -a "${cmd[@]}"
+          xvfb-run -a "${cmd[@]}" 2>&1 | tee "$LOG_FILE"
         else
-          "${cmd[@]}"
+          "${cmd[@]}" 2>&1 | tee "$LOG_FILE"
+        fi
+
+        FORBIDDEN_TASKS='^> Task :(buildPlugin|prepareSandbox|jar|composedJar|instrumentedJar|compileKotlin)( |$)'
+        if grep -Eq "$FORBIDDEN_TASKS" "$LOG_FILE"; then
+          echo "Forbidden rebuild task execution detected in verify job:" >&2
+          grep -En "$FORBIDDEN_TASKS" "$LOG_FILE" >&2
+          exit 1
         fi
 
     - name: Upload Test Results
