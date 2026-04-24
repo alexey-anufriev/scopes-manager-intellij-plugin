@@ -8,6 +8,7 @@ concurrency:
 
 jobs:
   verify:
+    name: Verify Release Candidate
     uses: ./.github/workflows/reusable-verify.yml
     with:
       artifact_prefix: release

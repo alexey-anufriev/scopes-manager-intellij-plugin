@@ -13,6 +13,7 @@ on:
 
 jobs:
   prepare:
+    name: Prepare Matrix
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.select-matrix.outputs.matrix }}
@@ -43,7 +44,15 @@ jobs:
           echo 'EOF'
         } >> "$GITHUB_OUTPUT"
 
+    - name: Trace Selected Matrix
+      shell: bash
+      run: |
+        echo "artifact_prefix=${{ inputs.artifact_prefix }}"
+        echo "matrix_targets=${{ inputs.matrix_targets }}"
+        echo "selected_matrix=${{ steps.select-matrix.outputs.matrix }}"
+
   build:
+    name: Build Plugin Artifact
     needs: prepare
     runs-on: ubuntu-latest
 
@@ -69,6 +78,12 @@ jobs:
     - name: Build Plugin Outputs
       run: ./gradlew buildPlugin
 
+    - name: Trace Build Outputs
+      shell: bash
+      run: |
+        echo "build_distributions:"
+        ls -lah build/distributions
+
     - name: Upload Plugin Archive
       uses: actions/upload-artifact@v7
       with:
@@ -77,6 +92,7 @@ jobs:
         if-no-files-found: error
 
   verify:
+    name: Verify ${{ matrix.name }}
     needs:
     - prepare
     - build
@@ -115,6 +131,13 @@ jobs:
         name: ${{ inputs.artifact_prefix }}-plugin-archive
         path: .ci/plugin-archive
 
+    - name: Trace Downloaded Artifact
+      shell: bash
+      run: |
+        echo "downloaded_artifact_name=${{ inputs.artifact_prefix }}-plugin-archive"
+        echo "downloaded_files:"
+        find "$GITHUB_WORKSPACE/.ci/plugin-archive" -maxdepth 2 -type f -print | sort
+
     - name: Resolve Built Plugin Paths
       shell: bash
       run: |
@@ -140,9 +163,19 @@ jobs:
         echo "BUILT_PLUGIN_ARCHIVE=$BUILT_PLUGIN_ARCHIVE" >> "$GITHUB_ENV"
         echo "BUILT_PLUGIN_DIR=$BUILT_PLUGIN_DIR" >> "$GITHUB_ENV"
 
+        echo "built_plugin_archive=$BUILT_PLUGIN_ARCHIVE"
+        echo "built_plugin_dir=$BUILT_PLUGIN_DIR"
+        echo "extracted_plugin_contents:"
+        find "$BUILT_PLUGIN_DIR" -maxdepth 2 -print | sort
+
     - name: Run Verification Task
       shell: bash
       run: |
+        echo "matrix_name=${{ matrix.name }}"
+        echo "matrix_command=${{ matrix.command }}"
+        echo "matrix_artifact_suffix=${{ matrix.artifact_suffix }}"
+        echo "matrix_xvfb=${{ matrix.xvfb }}"
+
         cmd=(${{ matrix.command }})
         if [ "${{ matrix.name }}" = "plugin-verifier" ]; then
           cmd+=("-PbuiltPluginArchive=$BUILT_PLUGIN_ARCHIVE")
@@ -150,6 +183,8 @@ jobs:
         if [ "${{ matrix.xvfb }}" = "true" ]; then
           cmd+=("-PbuiltPluginDir=$BUILT_PLUGIN_DIR")
         fi
+
+        echo "resolved_command=${cmd[*]}"
 
         if [ "${{ matrix.xvfb }}" = "true" ]; then
           xvfb-run -a "${cmd[@]}"
