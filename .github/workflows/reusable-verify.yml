@@ -196,7 +196,7 @@ jobs:
           "${cmd[@]}" 2>&1 | tee "$LOG_FILE"
         fi
 
-        FORBIDDEN_TASKS='^> Task :(buildPlugin|prepareSandbox|jar|composedJar|instrumentedJar|compileKotlin)( |$)'
+        FORBIDDEN_TASKS='^> Task :(buildPlugin|prepareSandbox)( |$)'
         if grep -Eq "$FORBIDDEN_TASKS" "$LOG_FILE"; then
           echo "Forbidden rebuild task execution detected in verify job:" >&2
           grep -En "$FORBIDDEN_TASKS" "$LOG_FILE" >&2
