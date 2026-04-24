@@ -67,20 +67,13 @@ jobs:
         cache: gradle
 
     - name: Build Plugin Outputs
-      run: ./gradlew buildPlugin prepareSandbox
+      run: ./gradlew buildPlugin
 
     - name: Upload Plugin Archive
       uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact_prefix }}-plugin-archive
         path: build/distributions/*.zip
-        if-no-files-found: error
-
-    - name: Upload Prepared Sandbox
-      uses: actions/upload-artifact@v7
-      with:
-        name: ${{ inputs.artifact_prefix }}-plugin-sandbox
-        path: .intellijPlatform/sandbox/**
         if-no-files-found: error
 
   verify:
@@ -122,19 +115,29 @@ jobs:
         name: ${{ inputs.artifact_prefix }}-plugin-archive
         path: .ci/plugin-archive
 
-    - name: Download Prepared Sandbox
-      uses: actions/download-artifact@v7
-      with:
-        name: ${{ inputs.artifact_prefix }}-plugin-sandbox
-        path: .ci/plugin-sandbox
-
     - name: Resolve Built Plugin Paths
       shell: bash
       run: |
-        echo "BUILT_PLUGIN_ARCHIVE=$(find "$GITHUB_WORKSPACE/.ci/plugin-archive" -type f -name '*.zip' | head -n 1)" >> "$GITHUB_ENV"
-        PLUGIN_XML_PATH="$(find "$GITHUB_WORKSPACE/.ci/plugin-sandbox" -type f -path '*/plugins/*/META-INF/plugin.xml' | head -n 1)"
-        PLUGIN_META_INF_DIR="$(dirname "$PLUGIN_XML_PATH")"
-        BUILT_PLUGIN_DIR="$(dirname "$PLUGIN_META_INF_DIR")"
+        set -euo pipefail
+
+        BUILT_PLUGIN_ARCHIVE="$(find "$GITHUB_WORKSPACE/.ci/plugin-archive" -type f -name '*.zip' | head -n 1)"
+        if [ -z "$BUILT_PLUGIN_ARCHIVE" ]; then
+          echo "Built plugin archive not found under $GITHUB_WORKSPACE/.ci/plugin-archive" >&2
+          exit 1
+        fi
+
+        EXTRACT_DIR="$GITHUB_WORKSPACE/.ci/extracted-plugin"
+        rm -rf "$EXTRACT_DIR"
+        mkdir -p "$EXTRACT_DIR"
+        unzip -q "$BUILT_PLUGIN_ARCHIVE" -d "$EXTRACT_DIR"
+
+        BUILT_PLUGIN_DIR="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+        if [ -z "$BUILT_PLUGIN_DIR" ]; then
+          echo "Built plugin directory not found after extracting $BUILT_PLUGIN_ARCHIVE" >&2
+          exit 1
+        fi
+
+        echo "BUILT_PLUGIN_ARCHIVE=$BUILT_PLUGIN_ARCHIVE" >> "$GITHUB_ENV"
         echo "BUILT_PLUGIN_DIR=$BUILT_PLUGIN_DIR" >> "$GITHUB_ENV"
 
     - name: Run Verification Task
