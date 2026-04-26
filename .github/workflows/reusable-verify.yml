@@ -34,8 +34,8 @@ jobs:
         if [ "${{ inputs.matrix_targets }}" = "full" ]; then
           MATRIX="$ALL_MATRIX"
         else
-          TARGETS=",${{ inputs.matrix_targets }},"
-          MATRIX="$(printf '%s' "$ALL_MATRIX" | jq -c --arg targets "$TARGETS" '[.[] | select($targets | contains("," + .name + ","))]')"
+          TARGETS="${{ inputs.matrix_targets }}"
+          MATRIX="$(printf '%s' "$ALL_MATRIX" | jq -c --arg targets "$TARGETS" '($targets | split(",") | map(select(length > 0))) as $selected | [.[] | select(.name as $name | $selected | index($name))]')"
         fi
 
         {
