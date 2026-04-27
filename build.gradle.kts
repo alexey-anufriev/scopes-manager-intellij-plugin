@@ -7,7 +7,7 @@ import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
     java
-    id("org.jetbrains.intellij.platform") version "2.14.0"
+    id("org.jetbrains.intellij.platform") version "2.15.0"
     id("org.jetbrains.kotlin.jvm") version "2.3.21"
 }
 
