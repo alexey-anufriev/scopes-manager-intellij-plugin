@@ -59,8 +59,8 @@ class ScopesManagerUiTest {
     fun pluginStartsWithoutUiErrorsOnProjectOpen() {
         try {
             runUiTest { config ->
-                if (config.activateTrial && config.productCode == "RD") {
-                    handleRiderLicenseDialogIfShown()
+                if (config.activateTrial) {
+                    handleLicenseDialogIfShown()
                 }
 
                 waitForUiReady(config.productCode, config.toolWindowId)
@@ -238,7 +238,7 @@ class ScopesManagerUiTest {
         throw AssertionError("Timed out waiting for tool window '$toolWindowId' to become available", lastError)
     }
 
-    private fun Driver.handleRiderLicenseDialogIfShown() {
+    private fun Driver.handleLicenseDialogIfShown() {
         if (!waitForLicenseDialog(5.seconds)) {
             return
         }

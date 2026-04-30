@@ -218,6 +218,7 @@ tasks.register<Test>("integrationTestGoLandLatestEap") {
             testProjectPath = "src/integrationTest/resources/test-projects/goland-project",
             sampleFileNames = "main.go",
             samplePath = "main.go",
+            activateTrial = true,
         ),
     )
 }
@@ -260,6 +261,7 @@ tasks.register<Test>("integrationTestGoLandLatest") {
             testProjectPath = "src/integrationTest/resources/test-projects/goland-project",
             sampleFileNames = "main.go",
             samplePath = "main.go",
+            activateTrial = true,
         ),
     )
 }
