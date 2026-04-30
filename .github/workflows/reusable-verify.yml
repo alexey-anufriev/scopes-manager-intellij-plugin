@@ -122,6 +122,11 @@ jobs:
         java-version: 21
         cache: gradle
 
+    - name: Setup Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.25'
+
     - name: Install Xvfb
       run: sudo apt-get update && sudo apt-get install -y xvfb
 
