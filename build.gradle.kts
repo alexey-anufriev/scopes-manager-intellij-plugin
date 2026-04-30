@@ -41,7 +41,7 @@ dependencies {
 
     add(integrationTest.implementationConfigurationName, sourceSets["main"].output)
     add(integrationTest.implementationConfigurationName, "org.junit.jupiter:junit-jupiter:6.0.3")
-    add(integrationTest.implementationConfigurationName, "org.kodein.di:kodein-di-jvm:7.31.0")
+    add(integrationTest.implementationConfigurationName, "org.kodein.di:kodein-di-jvm:7.32.0")
     add(integrationTest.implementationConfigurationName, "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
     // Required to deserialize AssertJ Swing exceptions returned by the remote Driver on CI.
     add(integrationTest.runtimeOnlyConfigurationName, "org.assertj:assertj-swing:3.17.1")
