@@ -208,7 +208,7 @@ class ScopesManagerUiTest {
     }
 
     private fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
-        if (productCode == "RD") {
+        if (productCode == "RD" || productCode == "GO") {
             waitForToolWindow(toolWindowId, 90.seconds)
             return
         }
