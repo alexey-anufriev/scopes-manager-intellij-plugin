@@ -41,7 +41,7 @@ dependencies {
 
     add(integrationTest.implementationConfigurationName, sourceSets["main"].output)
     add(integrationTest.implementationConfigurationName, "org.junit.jupiter:junit-jupiter:6.0.3")
-    add(integrationTest.implementationConfigurationName, "org.kodein.di:kodein-di-jvm:7.31.0")
+    add(integrationTest.implementationConfigurationName, "org.kodein.di:kodein-di-jvm:7.32.0")
     add(integrationTest.implementationConfigurationName, "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
     // Required to deserialize AssertJ Swing exceptions returned by the remote Driver on CI.
     add(integrationTest.runtimeOnlyConfigurationName, "org.assertj:assertj-swing:3.17.1")
@@ -108,7 +108,6 @@ data class UiIntegrationTestConfig(
     val testProjectPath: String = "src/integrationTest/resources/test-projects/idea-project",
     val sampleFileNames: String = "App,App.java",
     val samplePath: String = "src/main/java/sample/App",
-    val activateTrial: Boolean = false,
 )
 
 val prepareSandbox = tasks.named<PrepareSandboxTask>("prepareSandbox")
@@ -128,7 +127,6 @@ fun Test.configureUiIntegrationTest(sourceSet: SourceSet, config: UiIntegrationT
     systemProperty("uiTestProjectPath", config.testProjectPath)
     systemProperty("uiTestSampleFileNames", config.sampleFileNames)
     systemProperty("uiTestSamplePath", config.samplePath)
-    systemProperty("uiTestActivateTrial", config.activateTrial.toString())
     config.ideVersion?.let { systemProperty("uiTestIdeVersion", it) }
 
     environment("GDK_BACKEND", "x11")
@@ -232,7 +230,6 @@ tasks.register<Test>("integrationTestRiderLatestEap") {
             testProjectPath = "src/integrationTest/resources/test-projects/rider-project",
             sampleFileNames = "Program.cs",
             samplePath = "App/Program.cs",
-            activateTrial = true,
         ),
     )
 }
@@ -273,7 +270,6 @@ tasks.register<Test>("integrationTestRiderLatest") {
             testProjectPath = "src/integrationTest/resources/test-projects/rider-project",
             sampleFileNames = "Program.cs",
             samplePath = "App/Program.cs",
-            activateTrial = true,
         ),
     )
 }

@@ -40,7 +40,6 @@ class ScopesManagerUiTest {
         val ideVersion: String?,
         val ideChannel: String,
         val toolWindowId: String,
-        val activateTrial: Boolean,
         val projectHome: Path,
         val sampleFileNames: Set<String>,
         val samplePath: Array<String>
@@ -59,10 +58,7 @@ class ScopesManagerUiTest {
     fun pluginStartsWithoutUiErrorsOnProjectOpen() {
         try {
             runUiTest { config ->
-                if (config.activateTrial && config.productCode == "RD") {
-                    handleRiderLicenseDialogIfShown()
-                }
-
+                handleLicenseDialogIfShown()
                 waitForUiReady(config.productCode, config.toolWindowId)
                 verifyProductBehavior(config)
             }
@@ -95,7 +91,7 @@ class ScopesManagerUiTest {
             PluginConfigurator(this).installPluginFromFolder(File(System.getProperty("path.to.build.plugin")))
         }
 
-        context.runIdeWithDriver().useDriverAndCloseIde {
+        context.runIdeWithDriver(runTimeout = 3.minutes).useDriverAndCloseIde {
             assertion(config)
         }
     }
@@ -130,7 +126,6 @@ class ScopesManagerUiTest {
             ideVersion = System.getProperty("uiTestIdeVersion"),
             ideChannel = System.getProperty("uiTestIdeChannel", "release"),
             toolWindowId = System.getProperty("uiTestToolWindowId", "Project"),
-            activateTrial = System.getProperty("uiTestActivateTrial", "false").toBoolean(),
             projectHome = Path.of(projectPath),
             sampleFileNames = System.getProperty("uiTestSampleFileNames", "App,App.java")
                 .split(',')
@@ -208,7 +203,7 @@ class ScopesManagerUiTest {
     }
 
     private fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
-        if (productCode == "RD") {
+        if (productCode == "RD" || productCode == "GO") {
             waitForToolWindow(toolWindowId, 90.seconds)
             return
         }
@@ -238,8 +233,8 @@ class ScopesManagerUiTest {
         throw AssertionError("Timed out waiting for tool window '$toolWindowId' to become available", lastError)
     }
 
-    private fun Driver.handleRiderLicenseDialogIfShown() {
-        if (!waitForLicenseDialog(5.seconds)) {
+    private fun Driver.handleLicenseDialogIfShown() {
+        if (!waitForLicenseDialog(20.seconds)) {
             return
         }
 
