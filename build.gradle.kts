@@ -108,7 +108,6 @@ data class UiIntegrationTestConfig(
     val testProjectPath: String = "src/integrationTest/resources/test-projects/idea-project",
     val sampleFileNames: String = "App,App.java",
     val samplePath: String = "src/main/java/sample/App",
-    val activateTrial: Boolean = true,
 )
 
 val prepareSandbox = tasks.named<PrepareSandboxTask>("prepareSandbox")
@@ -128,7 +127,6 @@ fun Test.configureUiIntegrationTest(sourceSet: SourceSet, config: UiIntegrationT
     systemProperty("uiTestProjectPath", config.testProjectPath)
     systemProperty("uiTestSampleFileNames", config.sampleFileNames)
     systemProperty("uiTestSamplePath", config.samplePath)
-    systemProperty("uiTestActivateTrial", config.activateTrial.toString())
     config.ideVersion?.let { systemProperty("uiTestIdeVersion", it) }
 
     environment("GDK_BACKEND", "x11")
@@ -218,7 +216,6 @@ tasks.register<Test>("integrationTestGoLandLatestEap") {
             testProjectPath = "src/integrationTest/resources/test-projects/goland-project",
             sampleFileNames = "main.go",
             samplePath = "main.go",
-            activateTrial = true,
         ),
     )
 }
@@ -233,7 +230,6 @@ tasks.register<Test>("integrationTestRiderLatestEap") {
             testProjectPath = "src/integrationTest/resources/test-projects/rider-project",
             sampleFileNames = "Program.cs",
             samplePath = "App/Program.cs",
-            activateTrial = true,
         ),
     )
 }
@@ -261,7 +257,6 @@ tasks.register<Test>("integrationTestGoLandLatest") {
             testProjectPath = "src/integrationTest/resources/test-projects/goland-project",
             sampleFileNames = "main.go",
             samplePath = "main.go",
-            activateTrial = true,
         ),
     )
 }
@@ -275,7 +270,6 @@ tasks.register<Test>("integrationTestRiderLatest") {
             testProjectPath = "src/integrationTest/resources/test-projects/rider-project",
             sampleFileNames = "Program.cs",
             samplePath = "App/Program.cs",
-            activateTrial = true,
         ),
     )
 }

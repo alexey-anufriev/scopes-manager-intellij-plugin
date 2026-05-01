@@ -7,7 +7,6 @@ import com.intellij.driver.sdk.ui.components.common.dialogs.licenseDialog
 import com.intellij.driver.sdk.ui.components.common.ideFrame
 import com.intellij.driver.sdk.ui.components.common.toolwindows.ProjectViewToolWindowUi
 import com.intellij.driver.sdk.ui.components.common.toolwindows.projectView
-import com.intellij.driver.sdk.ui.components.elements.DialogUiComponent
 import com.intellij.driver.sdk.ui.components.elements.isDialogOpened
 import com.intellij.driver.sdk.ui.components.elements.popupMenu
 import com.intellij.driver.sdk.ui.ui
@@ -41,7 +40,6 @@ class ScopesManagerUiTest {
         val ideVersion: String?,
         val ideChannel: String,
         val toolWindowId: String,
-        val activateTrial: Boolean,
         val projectHome: Path,
         val sampleFileNames: Set<String>,
         val samplePath: Array<String>
@@ -60,10 +58,7 @@ class ScopesManagerUiTest {
     fun pluginStartsWithoutUiErrorsOnProjectOpen() {
         try {
             runUiTest { config ->
-                if (config.activateTrial) {
-                    handleLicenseDialogIfShown(config.productCode)
-                }
-
+                handleLicenseDialogIfShown()
                 waitForUiReady(config.productCode, config.toolWindowId)
                 verifyProductBehavior(config)
             }
@@ -131,7 +126,6 @@ class ScopesManagerUiTest {
             ideVersion = System.getProperty("uiTestIdeVersion"),
             ideChannel = System.getProperty("uiTestIdeChannel", "release"),
             toolWindowId = System.getProperty("uiTestToolWindowId", "Project"),
-            activateTrial = System.getProperty("uiTestActivateTrial", "true").toBoolean(),
             projectHome = Path.of(projectPath),
             sampleFileNames = System.getProperty("uiTestSampleFileNames", "App,App.java")
                 .split(',')
@@ -210,7 +204,7 @@ class ScopesManagerUiTest {
 
     private fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
         if (productCode == "RD" || productCode == "GO") {
-            waitForToolWindow(toolWindowId, 90.seconds, productCode)
+            waitForToolWindow(toolWindowId, 90.seconds)
             return
         }
 
@@ -220,10 +214,9 @@ class ScopesManagerUiTest {
         }
     }
 
-    private fun Driver.waitForToolWindow(toolWindowId: String, timeout: Duration, productCode: String) {
+    private fun Driver.waitForToolWindow(toolWindowId: String, timeout: Duration) {
         val deadline = System.nanoTime() + timeout.inWholeNanoseconds
         var lastError: Throwable? = null
-        var lastDialogSignature: String? = null
 
         while (System.nanoTime() < deadline) {
             try {
@@ -233,12 +226,6 @@ class ScopesManagerUiTest {
                 return
             } catch (t: Throwable) {
                 lastError = t
-                if (shouldLogLicenseDiagnostics(productCode)) {
-                    lastDialogSignature = logDialogDiagnostics(
-                        stage = "waiting for tool window '$toolWindowId'",
-                        previousSignature = lastDialogSignature
-                    )
-                }
                 Thread.sleep(2.seconds.inWholeMilliseconds)
             }
         }
@@ -246,20 +233,9 @@ class ScopesManagerUiTest {
         throw AssertionError("Timed out waiting for tool window '$toolWindowId' to become available", lastError)
     }
 
-    private fun Driver.handleLicenseDialogIfShown(productCode: String) {
-        val probeTimeout = if (shouldLogLicenseDiagnostics(productCode)) 20.seconds else 5.seconds
-        val dialogSignature = waitForLicenseDialog(
-            timeout = probeTimeout,
-            productCode = productCode,
-            logDiagnostics = shouldLogLicenseDiagnostics(productCode)
-        )
-
-        if (dialogSignature == null) {
+    private fun Driver.handleLicenseDialogIfShown() {
+        if (!waitForLicenseDialog(20.seconds)) {
             return
-        }
-
-        if (shouldLogLicenseDiagnostics(productCode)) {
-            println("[ui-test] $productCode startup dialog matched license flow: $dialogSignature")
         }
 
         licenseDialog {
@@ -287,84 +263,17 @@ class ScopesManagerUiTest {
         }
     }
 
-    private fun Driver.waitForLicenseDialog(
-        timeout: Duration,
-        productCode: String,
-        logDiagnostics: Boolean
-    ): String? {
+    private fun Driver.waitForLicenseDialog(timeout: Duration): Boolean {
         val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        var lastDialogSignature: String? = null
 
         while (System.nanoTime() < deadline) {
-            if (logDiagnostics) {
-                lastDialogSignature = logDialogDiagnostics(
-                    stage = "probing for license dialog",
-                    previousSignature = lastDialogSignature
-                )
-            }
-
-            if (hasMatchingLicenseDialog(productCode)) {
-                return lastDialogSignature ?: "Manage Licenses"
+            if (ui.isDialogOpened("//div[@title='Manage Licenses']")) {
+                return true
             }
             Thread.sleep(250)
         }
 
-        return null
-    }
-
-    private fun Driver.hasMatchingLicenseDialog(productCode: String): Boolean {
-        if (ui.isDialogOpened("//div[@title='Manage Licenses']")) {
-            return true
-        }
-
-        if (productCode != "WS") {
-            return false
-        }
-
-        val dialogs = ui.xx("//div[@class='MyDialog']", DialogUiComponent::class.java).list()
-        return dialogs.any { dialog ->
-            val signature = dialogSignature(dialog).lowercase()
-            signature.contains("start trial") &&
-                signature.contains("paid license") &&
-                (signature.contains("webstorm") || signature.contains("non-commercial use"))
-        }
-    }
-
-    private fun shouldLogLicenseDiagnostics(productCode: String): Boolean {
-        return productCode == "GO" || productCode == "WS"
-    }
-
-    private fun Driver.logDialogDiagnostics(stage: String, previousSignature: String?): String? {
-        val dialogs = ui.xx("//div[@class='MyDialog']", DialogUiComponent::class.java).list()
-        val signatures = dialogs.map { dialogSignature(it) }
-        val combinedSignature = signatures.joinToString(" || ")
-        if (combinedSignature == previousSignature) {
-            return previousSignature
-        }
-
-        val manageLicensesOpened = ui.isDialogOpened("//div[@title='Manage Licenses']")
-        println(
-            "[ui-test] $stage: dialogCount=${dialogs.size}, manageLicensesOpened=$manageLicensesOpened"
-        )
-        signatures.forEachIndexed { index, signature ->
-            println("[ui-test] $stage dialog[$index]: $signature")
-        }
-
-        return combinedSignature
-    }
-
-    private fun dialogSignature(dialog: DialogUiComponent): String {
-        val texts = dialog.getAllTexts()
-            .map { it.text.trim() }
-            .filter(String::isNotEmpty)
-            .distinct()
-            .take(12)
-
-        return if (texts.isEmpty()) {
-            "<no visible text>"
-        } else {
-            texts.joinToString(" | ")
-        }
+        return false
     }
 
     private fun Driver.assertPopupContainsText(expectedText: String, timeout: Duration = 15.seconds) {
