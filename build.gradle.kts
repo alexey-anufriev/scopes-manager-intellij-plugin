@@ -108,7 +108,7 @@ data class UiIntegrationTestConfig(
     val testProjectPath: String = "src/integrationTest/resources/test-projects/idea-project",
     val sampleFileNames: String = "App,App.java",
     val samplePath: String = "src/main/java/sample/App",
-    val activateTrial: Boolean = false,
+    val activateTrial: Boolean = true,
 )
 
 val prepareSandbox = tasks.named<PrepareSandboxTask>("prepareSandbox")

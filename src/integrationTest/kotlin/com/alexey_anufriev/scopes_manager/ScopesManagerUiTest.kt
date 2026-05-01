@@ -131,7 +131,7 @@ class ScopesManagerUiTest {
             ideVersion = System.getProperty("uiTestIdeVersion"),
             ideChannel = System.getProperty("uiTestIdeChannel", "release"),
             toolWindowId = System.getProperty("uiTestToolWindowId", "Project"),
-            activateTrial = System.getProperty("uiTestActivateTrial", "false").toBoolean(),
+            activateTrial = System.getProperty("uiTestActivateTrial", "true").toBoolean(),
             projectHome = Path.of(projectPath),
             sampleFileNames = System.getProperty("uiTestSampleFileNames", "App,App.java")
                 .split(',')
@@ -233,7 +233,7 @@ class ScopesManagerUiTest {
                 return
             } catch (t: Throwable) {
                 lastError = t
-                if (productCode == "GO") {
+                if (shouldLogLicenseDiagnostics(productCode)) {
                     lastDialogSignature = logDialogDiagnostics(
                         stage = "waiting for tool window '$toolWindowId'",
                         previousSignature = lastDialogSignature
@@ -247,16 +247,19 @@ class ScopesManagerUiTest {
     }
 
     private fun Driver.handleLicenseDialogIfShown(productCode: String) {
-        val isGoLand = productCode == "GO"
-        val probeTimeout = if (isGoLand) 20.seconds else 5.seconds
-        val dialogSignature = waitForLicenseDialog(probeTimeout, logDiagnostics = isGoLand)
+        val probeTimeout = if (shouldLogLicenseDiagnostics(productCode)) 20.seconds else 5.seconds
+        val dialogSignature = waitForLicenseDialog(
+            timeout = probeTimeout,
+            productCode = productCode,
+            logDiagnostics = shouldLogLicenseDiagnostics(productCode)
+        )
 
         if (dialogSignature == null) {
             return
         }
 
-        if (isGoLand) {
-            println("[ui-test] GoLand startup dialog matched Manage Licenses: $dialogSignature")
+        if (shouldLogLicenseDiagnostics(productCode)) {
+            println("[ui-test] $productCode startup dialog matched license flow: $dialogSignature")
         }
 
         licenseDialog {
@@ -284,7 +287,11 @@ class ScopesManagerUiTest {
         }
     }
 
-    private fun Driver.waitForLicenseDialog(timeout: Duration, logDiagnostics: Boolean): String? {
+    private fun Driver.waitForLicenseDialog(
+        timeout: Duration,
+        productCode: String,
+        logDiagnostics: Boolean
+    ): String? {
         val deadline = System.nanoTime() + timeout.inWholeNanoseconds
         var lastDialogSignature: String? = null
 
@@ -296,13 +303,35 @@ class ScopesManagerUiTest {
                 )
             }
 
-            if (ui.isDialogOpened("//div[@title='Manage Licenses']")) {
+            if (hasMatchingLicenseDialog(productCode)) {
                 return lastDialogSignature ?: "Manage Licenses"
             }
             Thread.sleep(250)
         }
 
         return null
+    }
+
+    private fun Driver.hasMatchingLicenseDialog(productCode: String): Boolean {
+        if (ui.isDialogOpened("//div[@title='Manage Licenses']")) {
+            return true
+        }
+
+        if (productCode != "WS") {
+            return false
+        }
+
+        val dialogs = ui.xx("//div[@class='MyDialog']", DialogUiComponent::class.java).list()
+        return dialogs.any { dialog ->
+            val signature = dialogSignature(dialog).lowercase()
+            signature.contains("start trial") &&
+                signature.contains("paid license") &&
+                (signature.contains("webstorm") || signature.contains("non-commercial use"))
+        }
+    }
+
+    private fun shouldLogLicenseDiagnostics(productCode: String): Boolean {
+        return productCode == "GO" || productCode == "WS"
     }
 
     private fun Driver.logDialogDiagnostics(stage: String, previousSignature: String?): String? {
