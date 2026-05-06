@@ -13,7 +13,17 @@ import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
 class SwitchScopeAction : AnAction() {
 
     override fun update(event: AnActionEvent) {
-        event.presentation.isEnabledAndVisible = event.project != null
+        val project = event.project
+        if (project == null) {
+            event.presentation.isEnabledAndVisible = false
+            return
+        }
+
+        val localScopesManager = NamedScopeManager.getInstance(project)
+        val sharedScopesManager = DependencyValidationManager.getInstance(project)
+        val hasScopes = localScopesManager.editableScopes.isNotEmpty() || sharedScopesManager.editableScopes.isNotEmpty()
+
+        event.presentation.isEnabledAndVisible = hasScopes
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -23,11 +33,14 @@ class SwitchScopeAction : AnAction() {
         val localScopesManager = NamedScopeManager.getInstance(project)
         val sharedScopesManager = DependencyValidationManager.getInstance(project)
 
-        val group = DefaultActionGroup(
-            SwitchToProjectViewAction(),
-            Separator(),
-            *collectSwitchScopeActions(localScopesManager, sharedScopesManager),
-        )
+        val group = DefaultActionGroup()
+        group.add(SwitchToProjectViewAction())
+
+        val switchActions = collectSwitchScopeActions(localScopesManager, sharedScopesManager)
+        if (switchActions.isNotEmpty()) {
+            group.add(Separator())
+            group.addAll(*switchActions)
+        }
 
         JBPopupFactory.getInstance().createActionGroupPopup(
             "Switch Scope",
