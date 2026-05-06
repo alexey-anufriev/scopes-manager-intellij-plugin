@@ -48,6 +48,17 @@ class SwitchScopeActionTest {
         assertThat(actions.map { it.templatePresentation.text }).containsExactly("A", "B")
     }
 
+    @Test
+    fun `should remove duplicates when local and shared scopes have same name`() {
+        val localScopesManager = holder(scope("Duplicate"))
+        val sharedScopesManager = holder(scope("Duplicate"))
+
+        val actions = SwitchScopeAction.collectSwitchScopeActions(localScopesManager, sharedScopesManager)
+
+        assertThat(actions.map { it.templatePresentation.text })
+            .containsExactly("Duplicate")
+    }
+
     private fun scope(name: String): NamedScope =
         NamedScope(name, InvalidPackageSet(name))
 

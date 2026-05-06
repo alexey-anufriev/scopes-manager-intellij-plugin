@@ -9,7 +9,6 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.packageDependencies.DependencyValidationManager
 import com.intellij.psi.search.scope.packageSet.NamedScopeManager
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
-import java.util.stream.Stream
 
 class SwitchScopeAction : AnAction() {
 
@@ -30,15 +29,13 @@ class SwitchScopeAction : AnAction() {
             *collectSwitchScopeActions(localScopesManager, sharedScopesManager),
         )
 
-        JBPopupFactory.getInstance()
-            .createActionGroupPopup(
-                "Switch Scope",
-                group,
-                event.dataContext,
-                JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
-                true,
-            )
-            .showCenteredInCurrentWindow(project)
+        JBPopupFactory.getInstance().createActionGroupPopup(
+            "Switch Scope",
+            group,
+            event.dataContext,
+            JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+            true,
+        ).showCenteredInCurrentWindow(project)
     }
 
     companion object {
@@ -46,13 +43,15 @@ class SwitchScopeAction : AnAction() {
             localScopesManager: NamedScopesHolder,
             sharedScopesManager: NamedScopesHolder
         ): Array<AnAction> {
-            val localScopesActions = Stream.of(*localScopesManager.editableScopes)
+            val localScopes = localScopesManager.editableScopes
+            val sharedScopes = sharedScopesManager.editableScopes
+
+            // Prioritize shared scopes over local ones if they have the same ID
+            return (sharedScopes + localScopes)
+                .distinctBy { it.scopeId }
                 .map { scope -> SwitchToScopeAction(scope) }
-            val sharedScopesActions = Stream.of(*sharedScopesManager.editableScopes)
-                .map { scope -> SwitchToScopeAction(scope) }
-            return Stream.concat(localScopesActions, sharedScopesActions)
-                .sorted(compareBy { it.templateText })
-                .toArray { size -> arrayOfNulls(size) }
+                .sortedBy { it.templateText }
+                .toTypedArray()
         }
     }
 }
