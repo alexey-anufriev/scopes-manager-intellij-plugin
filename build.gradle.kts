@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.alexey-anufriev"
-version = "1.14.0"
+version = "1.15.0"
 
 val ide = (findProperty("ide") ?: "IC").toString()
 val platformVersion = "2025.1"
