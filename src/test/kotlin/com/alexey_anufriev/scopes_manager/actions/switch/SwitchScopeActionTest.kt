@@ -1,5 +1,6 @@
 package com.alexey_anufriev.scopes_manager.actions.switch
 
+import com.intellij.openapi.project.DumbAware
 import com.intellij.psi.search.scope.packageSet.InvalidPackageSet
 import com.intellij.psi.search.scope.packageSet.NamedScope
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
@@ -11,6 +12,11 @@ import org.mockito.kotlin.mock
 class SwitchScopeActionTest {
 
     @Test
+    fun `switch scope action should be available while indices are updating`() {
+        assertThat(SwitchScopeAction()).isInstanceOf(DumbAware::class.java)
+    }
+
+    @Test
     fun `should combine local and shared editable scopes sorted alphabetically`() {
         val localScopesManager = holder(scope("Local B"), scope("Local A"))
         val sharedScopesManager = holder(scope("Shared A"))
@@ -19,6 +25,7 @@ class SwitchScopeActionTest {
 
         assertThat(actions.map { it.templatePresentation.text })
             .containsExactly("Local A", "Local B", "Shared A")
+        assertThat(actions).allMatch { it is DumbAware }
     }
 
     @Test

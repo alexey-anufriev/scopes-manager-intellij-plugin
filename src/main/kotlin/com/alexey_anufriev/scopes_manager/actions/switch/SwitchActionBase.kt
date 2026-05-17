@@ -4,12 +4,13 @@ import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
 import javax.swing.Icon
 
-abstract class SwitchActionBase(text: String, icon: Icon?) : AnAction(text, null, icon) {
+abstract class SwitchActionBase(text: String, icon: Icon?) : AnAction(text, null, icon), DumbAware {
 
     protected abstract val failureMessage: String
 
