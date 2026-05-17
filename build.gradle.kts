@@ -248,6 +248,20 @@ tasks.register<Test>("integrationTestPyCharmLatestEap") {
     )
 }
 
+tasks.register<Test>("integrationTestRubyMineLatestEap") {
+    configureUiIntegrationTest(
+        integrationTest,
+        UiIntegrationTestConfig(
+            displayName = "latest RubyMine EAP",
+            productCode = "RM",
+            ideChannel = "eap",
+            testProjectPath = "src/integrationTest/resources/test-projects/rubymine-project",
+            sampleFileNames = "app.rb",
+            samplePath = "src/app.rb",
+        ),
+    )
+}
+
 tasks.register<Test>("integrationTestWebStormLatestEap") {
     configureUiIntegrationTest(
         integrationTest,
@@ -301,6 +315,19 @@ tasks.register<Test>("integrationTestPyCharmLatest") {
     )
 }
 
+tasks.register<Test>("integrationTestRubyMineLatest") {
+    configureUiIntegrationTest(
+        integrationTest,
+        UiIntegrationTestConfig(
+            displayName = "latest RubyMine release",
+            productCode = "RM",
+            testProjectPath = "src/integrationTest/resources/test-projects/rubymine-project",
+            sampleFileNames = "app.rb",
+            samplePath = "src/app.rb",
+        ),
+    )
+}
+
 tasks.register<Test>("integrationTestWebStormLatest") {
     configureUiIntegrationTest(
         integrationTest,
@@ -325,6 +352,7 @@ val stableUiIntegrationTests = listOf(
     "integrationTestGoLandLatest",
     "integrationTestPyCharmLatest",
     "integrationTestRiderLatest",
+    "integrationTestRubyMineLatest",
     "integrationTestWebStormLatest",
 )
 
@@ -333,6 +361,7 @@ val eapUiIntegrationTests = listOf(
     "integrationTestGoLandLatestEap",
     "integrationTestPyCharmLatestEap",
     "integrationTestRiderLatestEap",
+    "integrationTestRubyMineLatestEap",
     "integrationTestWebStormLatestEap",
 )
 

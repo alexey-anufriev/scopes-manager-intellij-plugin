@@ -164,6 +164,7 @@ abstract class UiIntegrationTestSupport {
         "GO" -> IdeProductProvider.GO
         "PY" -> IdeProductProvider.PY
         "RD" -> IdeProductProvider.RD
+        "RM" -> IdeProductProvider.RM
         "WS" -> IdeProductProvider.WS
         else -> throw IllegalArgumentException("Unsupported IDE product code: $productCode")
     }
