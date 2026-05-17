@@ -22,6 +22,7 @@
         <ul>
         <li>Add to Scope: Alt+S / ⌥+S</li>
         <li>Remove from Scope: Alt+D / ⌥+D</li>
+        <li>Switch Scope: Alt+Shift+S / ⌥⇧S</li>
         </ul>
 
         <br/>
@@ -39,6 +40,13 @@
     </extensions>
 
     <actions>
+        <action id="com.alexey-anufriev.scopes-manager.SwitchScope"
+                class="com.alexey_anufriev.scopes_manager.actions.switch.SwitchScopeAction"
+                text="Switch Scope" icon="AllIcons.General.Filter"
+                description="Quickly switch the active scope in the Project view">
+            <keyboard-shortcut keymap="$default" first-keystroke="alt shift S"/>
+        </action>
+
         <action id="com.alexey-anufriev.scopes-manager.PreSeparator"
                 class="com.intellij.openapi.actionSystem.Separator">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
@@ -75,6 +83,9 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.15.0: New action "Switch Scope" (Alt+Shift+S / ⌥⇧S) to switch the active scope in the Project view from the keyboard or Find Action.
+        <br/>
+        <br/>
         1.14.0: Unified compatibility approach: left unbound but constantly validated.
         <br/>
         <br/>
