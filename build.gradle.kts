@@ -234,6 +234,20 @@ tasks.register<Test>("integrationTestRiderLatestEap") {
     )
 }
 
+tasks.register<Test>("integrationTestPyCharmLatestEap") {
+    configureUiIntegrationTest(
+        integrationTest,
+        UiIntegrationTestConfig(
+            displayName = "latest PyCharm EAP",
+            productCode = "PY",
+            ideChannel = "eap",
+            testProjectPath = "src/integrationTest/resources/test-projects/pycharm-project",
+            sampleFileNames = "app.py",
+            samplePath = "src/app.py",
+        ),
+    )
+}
+
 tasks.register<Test>("integrationTestWebStormLatestEap") {
     configureUiIntegrationTest(
         integrationTest,
@@ -274,6 +288,19 @@ tasks.register<Test>("integrationTestRiderLatest") {
     )
 }
 
+tasks.register<Test>("integrationTestPyCharmLatest") {
+    configureUiIntegrationTest(
+        integrationTest,
+        UiIntegrationTestConfig(
+            displayName = "latest PyCharm release",
+            productCode = "PY",
+            testProjectPath = "src/integrationTest/resources/test-projects/pycharm-project",
+            sampleFileNames = "app.py",
+            samplePath = "src/app.py",
+        ),
+    )
+}
+
 tasks.register<Test>("integrationTestWebStormLatest") {
     configureUiIntegrationTest(
         integrationTest,
@@ -296,6 +323,7 @@ val legacyUiIntegrationTests = listOf(
 val stableUiIntegrationTests = listOf(
     "integrationTestIdeaLatestRelease",
     "integrationTestGoLandLatest",
+    "integrationTestPyCharmLatest",
     "integrationTestRiderLatest",
     "integrationTestWebStormLatest",
 )
@@ -303,6 +331,7 @@ val stableUiIntegrationTests = listOf(
 val eapUiIntegrationTests = listOf(
     "integrationTestIdeaLatestEap",
     "integrationTestGoLandLatestEap",
+    "integrationTestPyCharmLatestEap",
     "integrationTestRiderLatestEap",
     "integrationTestWebStormLatestEap",
 )
