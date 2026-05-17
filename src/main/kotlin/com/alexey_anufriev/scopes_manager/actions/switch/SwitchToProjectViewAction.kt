@@ -3,24 +3,13 @@ package com.alexey_anufriev.scopes_manager.actions.switch
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.ProjectViewPane
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.wm.ToolWindowId
-import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ToolWindow
 
-class SwitchToProjectViewAction : AnAction("Project", null, AllIcons.General.ProjectStructure) {
+class SwitchToProjectViewAction : SwitchActionBase("Project", AllIcons.General.ProjectStructure) {
 
-    override fun actionPerformed(event: AnActionEvent) {
-        val project = event.project ?: return
-        val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.PROJECT_VIEW) ?: return
+    override val failureMessage: String = "Failed to switch to Project view"
 
-        toolWindow.activate({
-            try {
-                ProjectView.getInstance(project).changeView(ProjectViewPane.ID)
-            } catch (t: Throwable) {
-                logger<SwitchToProjectViewAction>().warn("Failed to switch to Project view", t)
-            }
-        }, true, true)
+    override fun switchView(projectView: ProjectView, toolWindow: ToolWindow) {
+        projectView.changeView(ProjectViewPane.ID)
     }
 }
