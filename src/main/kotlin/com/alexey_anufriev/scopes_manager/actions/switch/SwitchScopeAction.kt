@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.packageDependencies.DependencyValidationManager
 import com.intellij.psi.search.scope.packageSet.NamedScopeManager
@@ -13,30 +14,24 @@ import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
 class SwitchScopeAction : AnAction() {
 
     override fun update(event: AnActionEvent) {
-        val project = event.project
-        if (project == null) {
+        val context = event.switchScopeContext()
+        if (context == null) {
             event.presentation.isEnabledAndVisible = false
             return
         }
 
-        val localScopesManager = NamedScopeManager.getInstance(project)
-        val sharedScopesManager = DependencyValidationManager.getInstance(project)
-        val hasScopes = localScopesManager.editableScopes.isNotEmpty() || sharedScopesManager.editableScopes.isNotEmpty()
-
-        event.presentation.isEnabledAndVisible = hasScopes
+        event.presentation.isEnabledAndVisible = context.hasScopes
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(event: AnActionEvent) {
-        val project = event.project ?: return
-        val localScopesManager = NamedScopeManager.getInstance(project)
-        val sharedScopesManager = DependencyValidationManager.getInstance(project)
+        val context = event.switchScopeContext() ?: return
 
         val group = DefaultActionGroup()
         group.add(SwitchToProjectViewAction())
 
-        val switchActions = collectSwitchScopeActions(localScopesManager, sharedScopesManager)
+        val switchActions = collectSwitchScopeActions(context.localScopesManager, context.sharedScopesManager)
         if (switchActions.isNotEmpty()) {
             group.add(Separator())
             group.addAll(*switchActions)
@@ -48,9 +43,27 @@ class SwitchScopeAction : AnAction() {
             event.dataContext,
             JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
             true,
-        ).showCenteredInCurrentWindow(project)
+        ).showCenteredInCurrentWindow(context.project)
     }
 
+    private fun AnActionEvent.switchScopeContext(): SwitchScopeContext? {
+        val project = project ?: return null
+        return SwitchScopeContext(
+            project = project,
+            localScopesManager = NamedScopeManager.getInstance(project),
+            sharedScopesManager = DependencyValidationManager.getInstance(project)
+        )
+    }
+
+}
+
+private data class SwitchScopeContext(
+    val project: Project,
+    val localScopesManager: NamedScopesHolder,
+    val sharedScopesManager: NamedScopesHolder
+) {
+    val hasScopes: Boolean
+        get() = localScopesManager.editableScopes.isNotEmpty() || sharedScopesManager.editableScopes.isNotEmpty()
 }
 
 internal fun collectSwitchScopeActions(
