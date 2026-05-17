@@ -15,7 +15,7 @@ class SwitchScopeActionTest {
         val localScopesManager = holder(scope("Local B"), scope("Local A"))
         val sharedScopesManager = holder(scope("Shared A"))
 
-        val actions = SwitchScopeAction.collectSwitchScopeActions(localScopesManager, sharedScopesManager)
+        val actions = collectSwitchScopeActions(localScopesManager, sharedScopesManager)
 
         assertThat(actions.map { it.templatePresentation.text })
             .containsExactly("Local A", "Local B", "Shared A")
@@ -23,7 +23,7 @@ class SwitchScopeActionTest {
 
     @Test
     fun `should return empty array when both holders have no editable scopes`() {
-        val actions = SwitchScopeAction.collectSwitchScopeActions(holder(), holder())
+        val actions = collectSwitchScopeActions(holder(), holder())
 
         assertThat(actions).isEmpty()
     }
@@ -33,7 +33,7 @@ class SwitchScopeActionTest {
         val localScopesManager = holder(scope("A"), scope("B"))
         val sharedScopesManager = holder()
 
-        val actions = SwitchScopeAction.collectSwitchScopeActions(localScopesManager, sharedScopesManager)
+        val actions = collectSwitchScopeActions(localScopesManager, sharedScopesManager)
 
         assertThat(actions.map { it.templatePresentation.text }).containsExactly("A", "B")
     }
@@ -43,7 +43,7 @@ class SwitchScopeActionTest {
         val localScopesManager = holder()
         val sharedScopesManager = holder(scope("A"), scope("B"))
 
-        val actions = SwitchScopeAction.collectSwitchScopeActions(localScopesManager, sharedScopesManager)
+        val actions = collectSwitchScopeActions(localScopesManager, sharedScopesManager)
 
         assertThat(actions.map { it.templatePresentation.text }).containsExactly("A", "B")
     }
@@ -53,7 +53,7 @@ class SwitchScopeActionTest {
         val localScopesManager = holder(scope("Duplicate"))
         val sharedScopesManager = holder(scope("Duplicate"))
 
-        val actions = SwitchScopeAction.collectSwitchScopeActions(localScopesManager, sharedScopesManager)
+        val actions = collectSwitchScopeActions(localScopesManager, sharedScopesManager)
 
         assertThat(actions.map { it.templatePresentation.text })
             .containsExactly("Duplicate")

@@ -51,20 +51,19 @@ class SwitchScopeAction : AnAction() {
         ).showCenteredInCurrentWindow(project)
     }
 
-    companion object {
-        internal fun collectSwitchScopeActions(
-            localScopesManager: NamedScopesHolder,
-            sharedScopesManager: NamedScopesHolder
-        ): Array<AnAction> {
-            val localScopes = localScopesManager.editableScopes
-            val sharedScopes = sharedScopesManager.editableScopes
+}
 
-            // Prioritize shared scopes over local ones if they have the same ID
-            return (sharedScopes + localScopes)
-                .distinctBy { it.scopeId }
-                .map { scope -> SwitchToScopeAction(scope) }
-                .sortedBy { it.templateText }
-                .toTypedArray()
-        }
-    }
+internal fun collectSwitchScopeActions(
+    localScopesManager: NamedScopesHolder,
+    sharedScopesManager: NamedScopesHolder
+): Array<AnAction> {
+    val localScopes = localScopesManager.editableScopes
+    val sharedScopes = sharedScopesManager.editableScopes
+
+    // Prioritize shared scopes over local ones if they have the same ID
+    return (sharedScopes + localScopes)
+        .distinctBy { it.scopeId }
+        .map { scope -> SwitchToScopeAction(scope) }
+        .sortedBy { it.templateText }
+        .toTypedArray()
 }
