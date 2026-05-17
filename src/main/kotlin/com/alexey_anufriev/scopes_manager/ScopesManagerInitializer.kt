@@ -16,6 +16,7 @@ private const val ADD_TO_SCOPE_ACTION = "com.alexey-anufriev.scopes-manager.AddT
 private const val ADD_TO_SCOPE_ACTION_RD = "com.alexey-anufriev.scopes-manager.AddToScopeActionGroup_RD"
 private const val REMOVE_FROM_SCOPE_ACTION = "com.alexey-anufriev.scopes-manager.RemoveFromScopeActionGroup"
 private const val REMOVE_FROM_SCOPE_ACTION_RD = "com.alexey-anufriev.scopes-manager.RemoveFromScopeActionGroup_RD"
+private const val SWITCH_SCOPE_ACTION = "com.alexey-anufriev.scopes-manager.SwitchScope"
 
 class ScopesManagerInitializer : ProjectActivity {
 
@@ -31,14 +32,25 @@ class ScopesManagerInitializer : ProjectActivity {
         warnings += keymap.tryAddOrExplainConflict(
             actionId = addActionId,
             shortcut = altShortcut(KeyEvent.VK_S),
-            readableName = "Alt+S"
+            shortcutName = "Alt+S",
+            actionName = "Add to Scope"
         )
 
         warnings += keymap.tryAddOrExplainConflict(
             actionId = removeActionId,
             shortcut = altShortcut(KeyEvent.VK_D),
-            readableName = "Alt+D"
+            shortcutName = "Alt+D",
+            actionName = "Remove from Scope"
         )
+
+        if (!rider) {
+            warnings += keymap.tryAddOrExplainConflict(
+                actionId = SWITCH_SCOPE_ACTION,
+                shortcut = altShortcut(KeyEvent.VK_A),
+                shortcutName = "Alt+A",
+                actionName = "Switch Scope"
+            )
+        }
 
         val actualWarnings = warnings.filter { it.isNotBlank() }
         if (actualWarnings.isNotEmpty()) {
@@ -57,7 +69,8 @@ class ScopesManagerInitializer : ProjectActivity {
     private fun Keymap.tryAddOrExplainConflict(
         actionId: String,
         shortcut: KeyboardShortcut,
-        readableName: String
+        shortcutName: String,
+        actionName: String
     ): String {
         if (getShortcuts(actionId).any { it == shortcut }) {
             return ""
@@ -66,7 +79,7 @@ class ScopesManagerInitializer : ProjectActivity {
         val conflicts = getConflicts(actionId, shortcut)
         if (conflicts.isNotEmpty()) {
             val conflictIds = conflicts.keys.joinToString()
-            return "$readableName is already in use.\nConflicts with: $conflictIds"
+            return "$shortcutName ($actionName) is already in use.\nConflicts with: $conflictIds"
         }
 
         addShortcut(actionId, shortcut)

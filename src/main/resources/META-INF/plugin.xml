@@ -20,9 +20,9 @@
         Shortcuts:
         <br/>
         <ul>
-        <li>Add to Scope: Alt+S / ⌥+S</li>
-        <li>Remove from Scope: Alt+D / ⌥+D</li>
-        <li>Switch Scope: Alt+Shift+S / ⌥⇧S</li>
+        <li>Add to Scope: Alt+S / ⌥+S (mental cue: <S>cope the file)</li>
+        <li>Remove from Scope: Alt+D / ⌥+D (mental cue: <D>e-scope the file)</li>
+        <li>Switch Scope: Alt+A / ⌥+A</li> (mental cue: <A>lternate the view)
         </ul>
 
         <br/>
@@ -44,7 +44,6 @@
                 class="com.alexey_anufriev.scopes_manager.actions.switch.SwitchScopeAction"
                 text="Switch Scope" icon="AllIcons.General.Filter"
                 description="Quickly switch the active scope in the Project view">
-            <keyboard-shortcut keymap="$default" first-keystroke="alt shift S"/>
         </action>
 
         <action id="com.alexey-anufriev.scopes-manager.PreSeparator"
@@ -83,7 +82,7 @@
     </actions>
 
     <change-notes><![CDATA[
-        1.15.0: New action "Switch Scope" (Alt+Shift+S / ⌥+⇧+S) added to switch the active scope
+        1.15.0: New action "Switch Scope" (Alt+A / ⌥+A) added to switch the active scope
         in the Project view from the keyboard or using "Find Action".
         <br/>
         <br/>
