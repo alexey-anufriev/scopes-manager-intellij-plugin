@@ -1,5 +1,6 @@
 package com.alexey_anufriev.scopes_manager.actions.switch
 
+import com.intellij.ide.scopeView.NamedScopeFilter
 import com.intellij.openapi.project.DumbAware
 import com.intellij.psi.search.scope.packageSet.InvalidPackageSet
 import com.intellij.psi.search.scope.packageSet.NamedScope
@@ -64,6 +65,19 @@ class SwitchScopeActionTest {
 
         assertThat(actions.map { it.templatePresentation.text })
             .containsExactly("Duplicate")
+    }
+
+    @Test
+    fun `should resolve scope view sub id from named scope filter`() {
+        val targetScope = scope("Target")
+        val otherFilter = NamedScopeFilter(holder(scope("Other")), scope("Other"))
+        val targetFilter = NamedScopeFilter(holder(targetScope), targetScope)
+        val filters = listOf(otherFilter, targetFilter)
+
+        val subId = resolveScopeViewSubId(targetScope, filters)
+
+        assertThat(subId).isEqualTo(targetFilter.toString())
+        assertThat(subId).isNotEqualTo(targetScope.scopeId)
     }
 
     private fun scope(name: String): NamedScope =
