@@ -9,14 +9,11 @@ import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.search.scope.packageSet.NamedScope
 
-class SwitchToScopeAction(private val scope: NamedScope)
-    : AnAction(scope.scopeId, null, scope.icon) {
+class SwitchToScopeAction(private val scope: NamedScope) : AnAction(scope.scopeId, null, scope.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
-        val toolWindow = ToolWindowManager.getInstance(project)
-            .getToolWindow(ToolWindowId.PROJECT_VIEW)
-            ?: return
+        val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.PROJECT_VIEW) ?: return
 
         toolWindow.activate({
             try {

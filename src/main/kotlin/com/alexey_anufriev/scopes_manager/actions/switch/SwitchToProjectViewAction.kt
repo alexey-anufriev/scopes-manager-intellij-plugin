@@ -9,14 +9,11 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
 
-class SwitchToProjectViewAction
-    : AnAction("Project", null, AllIcons.General.ProjectStructure) {
+class SwitchToProjectViewAction : AnAction("Project", null, AllIcons.General.ProjectStructure) {
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
-        val toolWindow = ToolWindowManager.getInstance(project)
-            .getToolWindow(ToolWindowId.PROJECT_VIEW)
-            ?: return
+        val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.PROJECT_VIEW) ?: return
 
         toolWindow.activate({
             try {
