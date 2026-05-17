@@ -44,10 +44,6 @@ Shortcut: `Alt + D` / `⌥+D` (can be reassigned in IDEA settings)
 
 Allows to remove selected resources from the scope.
 
-### Clear Scope
-
-Allows to clear the scope content completely.
-
 ### Switch Scope
 
 Shortcut: `Alt + Shift + S` / `⌥+⇧+S` (can be reassigned in IDEA settings)
@@ -57,6 +53,10 @@ The first entry, `Project`, disables the Scope view and returns to the regular P
 Also discoverable via `Find Action` (`Ctrl+Shift+A` / `⇧⌘A`) as `Switch Scope`.
 
 ![switch scopes](./docs/switch-scopes.png)
+
+### Clear Scope
+
+Allows to clear the scope content completely.
 
 ## Sample View
 

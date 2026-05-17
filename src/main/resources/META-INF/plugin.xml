@@ -83,7 +83,8 @@
     </actions>
 
     <change-notes><![CDATA[
-        1.15.0: New action "Switch Scope" (Alt+Shift+S / ⌥⇧S) to switch the active scope in the Project view from the keyboard or Find Action.
+        1.15.0: New action "Switch Scope" (Alt+Shift+S / ⌥+⇧+S) added to switch the active scope
+        in the Project view from the keyboard or using "Find Action".
         <br/>
         <br/>
         1.14.0: Unified compatibility approach: left unbound but constantly validated.
