@@ -50,7 +50,7 @@ Shortcut: `Alt + Shift + S` / `⌥+⇧+S` (can be reassigned in IDEA settings)
 
 Opens a popup with all user-defined scopes and switches the Project view to the selected one without leaving the keyboard.
 The first entry, `Project`, disables the Scope view and returns to the regular Project view.
-Also discoverable via `Find Action` (`Ctrl+Shift+A` / `⇧⌘A`) as `Switch Scope`.
+Also, discoverable via `Find Action` (`Ctrl+Shift+A` / `⇧⌘A`) as `Switch Scope`.
 
 ![switch scopes](./docs/switch-scopes.png)
 
