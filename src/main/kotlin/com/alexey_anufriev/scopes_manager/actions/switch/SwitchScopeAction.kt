@@ -1,5 +1,7 @@
 package com.alexey_anufriev.scopes_manager.actions.switch
 
+import com.intellij.ide.projectView.ProjectView
+import com.intellij.ide.scopeView.ScopeViewPane
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -21,10 +23,10 @@ class SwitchScopeAction : AnAction(), DumbAware {
             return
         }
 
-        event.presentation.isEnabledAndVisible = context.hasScopes
+        event.presentation.isEnabledAndVisible = context.hasScopeSwitchTargets
     }
 
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun actionPerformed(event: AnActionEvent) {
         val context = event.switchScopeContext() ?: return
@@ -32,7 +34,11 @@ class SwitchScopeAction : AnAction(), DumbAware {
         val group = DefaultActionGroup()
         group.add(SwitchToProjectViewAction())
 
-        val switchActions = collectSwitchScopeActions(context.localScopesManager, context.sharedScopesManager)
+        val switchActions = collectSwitchScopeActions(
+            context.localScopesManager,
+            context.sharedScopesManager,
+            context.scopeViewPaneAvailable
+        )
         if (switchActions.isNotEmpty()) {
             group.add(Separator())
             group.addAll(*switchActions)
@@ -52,7 +58,8 @@ class SwitchScopeAction : AnAction(), DumbAware {
         return SwitchScopeContext(
             project = project,
             localScopesManager = NamedScopeManager.getInstance(project),
-            sharedScopesManager = DependencyValidationManager.getInstance(project)
+            sharedScopesManager = DependencyValidationManager.getInstance(project),
+            scopeViewPaneAvailable = ProjectView.getInstance(project).getProjectViewPaneById(ScopeViewPane.ID) != null
         )
     }
 
@@ -61,16 +68,25 @@ class SwitchScopeAction : AnAction(), DumbAware {
 private data class SwitchScopeContext(
     val project: Project,
     val localScopesManager: NamedScopesHolder,
-    val sharedScopesManager: NamedScopesHolder
+    val sharedScopesManager: NamedScopesHolder,
+    val scopeViewPaneAvailable: Boolean
 ) {
     val hasScopes: Boolean
         get() = localScopesManager.editableScopes.isNotEmpty() || sharedScopesManager.editableScopes.isNotEmpty()
+
+    val hasScopeSwitchTargets: Boolean
+        get() = scopeViewPaneAvailable && hasScopes
 }
 
 internal fun collectSwitchScopeActions(
     localScopesManager: NamedScopesHolder,
-    sharedScopesManager: NamedScopesHolder
+    sharedScopesManager: NamedScopesHolder,
+    scopeViewPaneAvailable: Boolean = true
 ): Array<AnAction> {
+    if (!scopeViewPaneAvailable) {
+        return emptyArray()
+    }
+
     val localScopes = localScopesManager.editableScopes
     val sharedScopes = sharedScopesManager.editableScopes
 

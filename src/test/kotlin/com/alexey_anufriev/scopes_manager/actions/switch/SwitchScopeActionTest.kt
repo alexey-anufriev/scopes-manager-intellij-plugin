@@ -57,6 +57,16 @@ class SwitchScopeActionTest {
     }
 
     @Test
+    fun `should not return scope actions when scope view pane is not available`() {
+        val localScopesManager = holder(scope("A"))
+        val sharedScopesManager = holder(scope("B"))
+
+        val actions = collectSwitchScopeActions(localScopesManager, sharedScopesManager, scopeViewPaneAvailable = false)
+
+        assertThat(actions).isEmpty()
+    }
+
+    @Test
     fun `should remove duplicates when local and shared scopes have same name`() {
         val localScopesManager = holder(scope("Duplicate"))
         val sharedScopesManager = holder(scope("Duplicate"))
