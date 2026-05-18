@@ -206,6 +206,20 @@ tasks.register<Test>("integrationTestIdeaLatestEap") {
     )
 }
 
+tasks.register<Test>("integrationTestCLionLatestEap") {
+    configureUiIntegrationTest(
+        integrationTest,
+        UiIntegrationTestConfig(
+            displayName = "latest CLion EAP",
+            productCode = "CL",
+            ideChannel = "eap",
+            testProjectPath = "src/integrationTest/resources/test-projects/clion-project",
+            sampleFileNames = "main.cpp",
+            samplePath = "src/main.cpp",
+        ),
+    )
+}
+
 tasks.register<Test>("integrationTestGoLandLatestEap") {
     configureUiIntegrationTest(
         integrationTest,
@@ -286,6 +300,19 @@ tasks.register<Test>("integrationTestWebStormLatestEap") {
             testProjectPath = "src/integrationTest/resources/test-projects/webstorm-project",
             sampleFileNames = "index.js",
             samplePath = "src/index.js",
+        ),
+    )
+}
+
+tasks.register<Test>("integrationTestCLionLatest") {
+    configureUiIntegrationTest(
+        integrationTest,
+        UiIntegrationTestConfig(
+            displayName = "latest CLion release",
+            productCode = "CL",
+            testProjectPath = "src/integrationTest/resources/test-projects/clion-project",
+            sampleFileNames = "main.cpp",
+            samplePath = "src/main.cpp",
         ),
     )
 }
@@ -376,6 +403,7 @@ val legacyUiIntegrationTests = listOf(
 
 val stableUiIntegrationTests = listOf(
     "integrationTestIdeaLatestRelease",
+    "integrationTestCLionLatest",
     "integrationTestGoLandLatest",
     "integrationTestPyCharmLatest",
     "integrationTestRiderLatest",
@@ -386,6 +414,7 @@ val stableUiIntegrationTests = listOf(
 
 val eapUiIntegrationTests = listOf(
     "integrationTestIdeaLatestEap",
+    "integrationTestCLionLatestEap",
     "integrationTestGoLandLatestEap",
     "integrationTestPyCharmLatestEap",
     "integrationTestRiderLatestEap",

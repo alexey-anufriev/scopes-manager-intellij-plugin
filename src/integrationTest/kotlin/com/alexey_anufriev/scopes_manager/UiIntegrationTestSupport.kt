@@ -159,6 +159,7 @@ abstract class UiIntegrationTestSupport {
     }
 
     private fun ideProduct(productCode: String): IdeInfo = when (productCode) {
+        "CL" -> IdeProductProvider.CL
         "IC" -> IdeProductProvider.IC
         "IU" -> IdeProductProvider.IU
         "GO" -> IdeProductProvider.GO
