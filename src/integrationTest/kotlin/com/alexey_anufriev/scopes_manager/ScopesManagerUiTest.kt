@@ -35,7 +35,7 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
             return
         }
 
-        verifyPopupContainsAddToScope(config)
+        verifyAddToScopeShortcut(config)
     }
 
     private fun Driver.verifyRiderProjectView(config: UiTestConfig) {
@@ -46,19 +46,23 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         }
     }
 
-    private fun Driver.verifyPopupContainsAddToScope(config: UiTestConfig) {
+    private fun Driver.verifyAddToScopeShortcut(config: UiTestConfig) {
         ideFrame {
             projectView {
-                assertAddToScopeVisibleForSampleFile(config.sampleFileNames, config.samplePath)
+                selectSampleFile(config.sampleFileNames, config.samplePath)
+                keyboard {
+                    hotKey(KeyEvent.VK_ALT, KeyEvent.VK_S)
+                }
             }
         }
-        assertPopupContainsText("Add to Scope")
+
+        if (!popupContainsText("Create New...", 15.seconds)) {
+            throw AssertionError("Add to Scope shortcut popup did not contain 'Create New...'. Popup items: ${popupItemsOrEmpty()}")
+        }
     }
 
-    private fun Driver.assertPopupContainsText(expectedText: String, timeout: Duration = 15.seconds) {
+    private fun Driver.popupContainsText(expectedText: String, timeout: Duration = 3.seconds): Boolean {
         val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        var lastItems = emptyList<String>()
-        var lastError: Throwable? = null
         val expectedTextXPath = "//div[" +
             "contains(@visible_text, '$expectedText') or " +
             "contains(@accessiblename, '$expectedText') or " +
@@ -70,62 +74,32 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
             try {
                 val popup = ui.popupMenu()
                 val items = popup.itemsList()
-                lastItems = items
                 if (items.any { it.contains(expectedText, ignoreCase = false) }) {
-                    return
+                    return true
                 }
             } catch (t: Throwable) {
-                lastError = t
             }
 
             try {
                 val menuItem = ui.x(expectedTextXPath)
                 if (menuItem.present()) {
-                    return
+                    return true
                 }
             } catch (t: Throwable) {
-                lastError = t
             }
 
             Thread.sleep(250)
         }
 
-        throw AssertionError(
-            "Popup did not contain '$expectedText'. Visible items: $lastItems",
-            lastError
-        )
+        return false
     }
 
-    private fun ProjectViewToolWindowUi.assertAddToScopeVisibleForSampleFile(
-        sampleFileNames: Set<String>,
-        samplePath: Array<String>
-    ) {
-        val deadline = System.nanoTime() + 60.seconds.inWholeNanoseconds
-        var expandedPaths = projectViewTree.collectExpandedPaths()
-
-        while (System.nanoTime() < deadline) {
-            expandVisiblePath(samplePath)
-
-            if (openContextMenuForPath(samplePath)) {
-                return
-            }
-
-            expandedPaths = projectViewTree.collectExpandedPaths()
-            val row = expandedPaths.firstOrNull { path ->
-                path.path.last() in sampleFileNames
-            }?.row
-
-            if (row != null && (openContextMenuWithRightClick(row) || openContextMenuWithKeyboard(row))) {
-                return
-            }
-
-            expandProjectRoots(expandedPaths)
-            Thread.sleep(500)
+    private fun Driver.popupItemsOrEmpty(): List<String> {
+        return try {
+            ui.popupMenu().itemsList()
+        } catch (_: Throwable) {
+            emptyList()
         }
-
-        throw AssertionError(
-            "Could not find sample file in Project View. Expanded paths: ${expandedPaths.map { it.path }}"
-        )
     }
 
     private fun ProjectViewToolWindowUi.selectSampleFile(
@@ -178,46 +152,13 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         paths
             .filter { path -> path.path.size == 1 }
             .filterNot { path -> path.path.last() in setOf("External Libraries", "Scratches and Consoles") }
+            .filterNot { root -> paths.any { path -> path.path.size > 1 && path.path.first() == root.path.first() } }
             .forEach { path ->
                 try {
                     projectViewTree.doubleClickRow(path.row)
                 } catch (_: Exception) {
                 }
             }
-    }
-
-    private fun ProjectViewToolWindowUi.openContextMenuForPath(path: Array<String>): Boolean {
-        if (isRiderTest()) {
-            return try {
-                projectViewTree.clickPath(*path, fullMatch = false)
-                keyboard {
-                    hotKey(KeyEvent.VK_SHIFT, KeyEvent.VK_F10)
-                }
-                true
-            } catch (_: Exception) {
-                try {
-                    projectViewTree.rightClickPath(*path, fullMatch = false)
-                    true
-                } catch (_: Exception) {
-                    false
-                }
-            }
-        }
-
-        return try {
-            projectViewTree.rightClickPath(*path, fullMatch = false)
-            true
-        } catch (_: Exception) {
-            try {
-                projectViewTree.clickPath(*path, fullMatch = false)
-                keyboard {
-                    hotKey(KeyEvent.VK_SHIFT, KeyEvent.VK_F10)
-                }
-                true
-            } catch (_: Exception) {
-                false
-            }
-        }
     }
 
     private fun ProjectViewToolWindowUi.clickPath(path: Array<String>): Boolean {
@@ -238,34 +179,4 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         }
     }
 
-    private fun ProjectViewToolWindowUi.openContextMenuWithRightClick(
-        row: Int
-    ): Boolean {
-        if (isRiderTest()) {
-            return false
-        }
-
-        return try {
-            projectViewTree.rightClickRow(row)
-            true
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    private fun ProjectViewToolWindowUi.openContextMenuWithKeyboard(
-        row: Int
-    ): Boolean {
-        return try {
-            projectViewTree.clickRow(row)
-            keyboard {
-                hotKey(KeyEvent.VK_SHIFT, KeyEvent.VK_F10)
-            }
-            true
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    private fun isRiderTest(): Boolean = System.getProperty("uiTestProductCode", "IC") == "RD"
 }
