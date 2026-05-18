@@ -8,7 +8,6 @@ import com.intellij.driver.sdk.ui.components.common.toolwindows.projectView
 import com.intellij.driver.sdk.ui.components.elements.popupMenu
 import com.intellij.driver.sdk.ui.ui
 import org.junit.jupiter.api.Test
-import java.awt.event.KeyEvent
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -35,7 +34,7 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
             return
         }
 
-        verifyAddToScopeShortcut(config)
+        verifyAddToScopeAction(config)
     }
 
     private fun Driver.verifyRiderProjectView(config: UiTestConfig) {
@@ -46,18 +45,18 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         }
     }
 
-    private fun Driver.verifyAddToScopeShortcut(config: UiTestConfig) {
+    private fun Driver.verifyAddToScopeAction(config: UiTestConfig) {
         ideFrame {
             projectView {
                 selectSampleFile(config.sampleFileNames, config.samplePath)
-                keyboard {
-                    hotKey(KeyEvent.VK_ALT, KeyEvent.VK_S)
-                }
+                rightClickSampleFile(config.sampleFileNames, config.samplePath)
             }
         }
 
+        ui.popupMenu().select("Add to Scope")
+
         if (!popupContainsText("Create New...", 15.seconds)) {
-            throw AssertionError("Add to Scope shortcut popup did not contain 'Create New...'. Popup items: ${popupItemsOrEmpty()}")
+            throw AssertionError("Add to Scope action popup did not contain 'Create New...'. Popup items: ${popupItemsOrEmpty()}")
         }
     }
 
@@ -134,6 +133,28 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         )
     }
 
+    private fun ProjectViewToolWindowUi.rightClickSampleFile(
+        sampleFileNames: Set<String>,
+        samplePath: Array<String>
+    ) {
+        if (rightClickPath(samplePath)) {
+            return
+        }
+
+        val expandedPaths = projectViewTree.collectExpandedPaths()
+        val row = expandedPaths.firstOrNull { path ->
+            path.path.last() in sampleFileNames
+        }?.row
+
+        if (row != null && rightClickRow(row)) {
+            return
+        }
+
+        throw AssertionError(
+            "Could not right-click sample file in Project View. Expanded paths: ${expandedPaths.map { it.path }}"
+        )
+    }
+
     private fun ProjectViewToolWindowUi.expandVisiblePath(path: Array<String>) {
         path.dropLast(1).forEachIndexed { index, segment ->
             val expandedPaths = projectViewTree.collectExpandedPaths()
@@ -173,6 +194,24 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
     private fun ProjectViewToolWindowUi.clickRow(row: Int): Boolean {
         return try {
             projectViewTree.clickRow(row)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun ProjectViewToolWindowUi.rightClickPath(path: Array<String>): Boolean {
+        return try {
+            projectViewTree.rightClickPath(*path, fullMatch = false)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun ProjectViewToolWindowUi.rightClickRow(row: Int): Boolean {
+        return try {
+            projectViewTree.rightClickRow(row)
             true
         } catch (_: Exception) {
             false
