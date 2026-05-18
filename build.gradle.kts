@@ -214,8 +214,8 @@ tasks.register<Test>("integrationTestCLionLatestEap") {
             productCode = "CL",
             ideChannel = "eap",
             testProjectPath = "src/integrationTest/resources/test-projects/clion-project",
-            sampleFileNames = "main.cpp",
-            samplePath = "src/main.cpp",
+            sampleFileNames = "CMakeLists.txt",
+            samplePath = "CMakeLists.txt",
         ),
     )
 }
@@ -284,8 +284,8 @@ tasks.register<Test>("integrationTestRustRoverLatestEap") {
             productCode = "RR",
             ideChannel = "eap",
             testProjectPath = "src/integrationTest/resources/test-projects/rustrover-project",
-            sampleFileNames = "main.rs",
-            samplePath = "src/main.rs",
+            sampleFileNames = "Cargo.toml",
+            samplePath = "Cargo.toml",
         ),
     )
 }
@@ -311,8 +311,8 @@ tasks.register<Test>("integrationTestCLionLatest") {
             displayName = "latest CLion release",
             productCode = "CL",
             testProjectPath = "src/integrationTest/resources/test-projects/clion-project",
-            sampleFileNames = "main.cpp",
-            samplePath = "src/main.cpp",
+            sampleFileNames = "CMakeLists.txt",
+            samplePath = "CMakeLists.txt",
         ),
     )
 }
@@ -376,8 +376,8 @@ tasks.register<Test>("integrationTestRustRoverLatest") {
             displayName = "latest RustRover release",
             productCode = "RR",
             testProjectPath = "src/integrationTest/resources/test-projects/rustrover-project",
-            sampleFileNames = "main.rs",
-            samplePath = "src/main.rs",
+            sampleFileNames = "Cargo.toml",
+            samplePath = "Cargo.toml",
         ),
     )
 }
