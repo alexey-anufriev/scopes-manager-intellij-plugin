@@ -262,6 +262,20 @@ tasks.register<Test>("integrationTestRubyMineLatestEap") {
     )
 }
 
+tasks.register<Test>("integrationTestRustRoverLatestEap") {
+    configureUiIntegrationTest(
+        integrationTest,
+        UiIntegrationTestConfig(
+            displayName = "latest RustRover EAP",
+            productCode = "RR",
+            ideChannel = "eap",
+            testProjectPath = "src/integrationTest/resources/test-projects/rustrover-project",
+            sampleFileNames = "main.rs",
+            samplePath = "src/main.rs",
+        ),
+    )
+}
+
 tasks.register<Test>("integrationTestWebStormLatestEap") {
     configureUiIntegrationTest(
         integrationTest,
@@ -328,6 +342,19 @@ tasks.register<Test>("integrationTestRubyMineLatest") {
     )
 }
 
+tasks.register<Test>("integrationTestRustRoverLatest") {
+    configureUiIntegrationTest(
+        integrationTest,
+        UiIntegrationTestConfig(
+            displayName = "latest RustRover release",
+            productCode = "RR",
+            testProjectPath = "src/integrationTest/resources/test-projects/rustrover-project",
+            sampleFileNames = "main.rs",
+            samplePath = "src/main.rs",
+        ),
+    )
+}
+
 tasks.register<Test>("integrationTestWebStormLatest") {
     configureUiIntegrationTest(
         integrationTest,
@@ -353,6 +380,7 @@ val stableUiIntegrationTests = listOf(
     "integrationTestPyCharmLatest",
     "integrationTestRiderLatest",
     "integrationTestRubyMineLatest",
+    "integrationTestRustRoverLatest",
     "integrationTestWebStormLatest",
 )
 
@@ -362,6 +390,7 @@ val eapUiIntegrationTests = listOf(
     "integrationTestPyCharmLatestEap",
     "integrationTestRiderLatestEap",
     "integrationTestRubyMineLatestEap",
+    "integrationTestRustRoverLatestEap",
     "integrationTestWebStormLatestEap",
 )
 
