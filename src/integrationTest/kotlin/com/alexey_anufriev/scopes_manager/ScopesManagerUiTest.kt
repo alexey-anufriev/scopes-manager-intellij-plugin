@@ -5,6 +5,7 @@ import com.intellij.driver.model.TreePathToRow
 import com.intellij.driver.sdk.ui.components.common.ideFrame
 import com.intellij.driver.sdk.ui.components.common.toolwindows.ProjectViewToolWindowUi
 import com.intellij.driver.sdk.ui.components.common.toolwindows.projectView
+import com.intellij.driver.sdk.ui.components.elements.popup
 import com.intellij.driver.sdk.ui.components.elements.popupMenu
 import com.intellij.driver.sdk.ui.ui
 import org.junit.jupiter.api.Test
@@ -46,18 +47,52 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
     }
 
     private fun Driver.verifyAddToScopeAction(config: UiTestConfig) {
-        ideFrame {
-            projectView {
-                selectSampleFile(config.sampleFileNames, config.samplePath)
-                rightClickSampleFile(config.sampleFileNames, config.samplePath)
+        openAddToScopeMenu(config)
+    }
+
+    private fun Driver.openAddToScopeMenu(config: UiTestConfig, timeout: Duration = 30.seconds) {
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        var lastPopupItems = emptyList<String>()
+        var lastError: Throwable? = null
+
+        while (System.nanoTime() < deadline) {
+            try {
+                ideFrame {
+                    projectView {
+                        selectSampleFile(config.sampleFileNames, config.samplePath)
+                        rightClickSampleFile(config.sampleFileNames, config.samplePath)
+                    }
+                }
+
+                if (popupContainsText("Add to Scope", 5.seconds)) {
+                    val menu = ui.popupMenu()
+                    lastPopupItems = menu.itemsList()
+                    val addToScopeItem = menu.findMenuItemByText("Add to Scope")
+
+                    addToScopeItem.moveMouse()
+                    if (popupContainsText("Create New...", 5.seconds)) {
+                        return
+                    }
+
+                    addToScopeItem.click()
+                    if (popupContainsText("Create New...", 5.seconds)) {
+                        return
+                    }
+                } else {
+                    lastPopupItems = popupItemsOrEmpty()
+                }
+            } catch (t: Throwable) {
+                lastError = t
             }
+
+            closePopupIfPresent()
+            Thread.sleep(500)
         }
 
-        ui.popupMenu().select("Add to Scope")
-
-        if (!popupContainsText("Create New...", 15.seconds)) {
-            throw AssertionError("Add to Scope action popup did not contain 'Create New...'. Popup items: ${popupItemsOrEmpty()}")
-        }
+        throw AssertionError(
+            "Add to Scope action popup did not contain 'Create New...'. Popup items: $lastPopupItems",
+            lastError
+        )
     }
 
     private fun Driver.popupContainsText(expectedText: String, timeout: Duration = 3.seconds): Boolean {
@@ -101,6 +136,23 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         }
     }
 
+    private fun Driver.closePopupIfPresent() {
+        try {
+            ui.popup().close()
+            return
+        } catch (_: Throwable) {
+        }
+
+        try {
+            ideFrame {
+                keyboard {
+                    escape()
+                }
+            }
+        } catch (_: Throwable) {
+        }
+    }
+
     private fun ProjectViewToolWindowUi.selectSampleFile(
         sampleFileNames: Set<String>,
         samplePath: Array<String>
@@ -137,6 +189,8 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         sampleFileNames: Set<String>,
         samplePath: Array<String>
     ) {
+        projectViewTree.setFocus()
+
         if (rightClickPath(samplePath)) {
             return
         }
