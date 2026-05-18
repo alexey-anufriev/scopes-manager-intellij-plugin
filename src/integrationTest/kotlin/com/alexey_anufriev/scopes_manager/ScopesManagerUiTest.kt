@@ -5,10 +5,10 @@ import com.intellij.driver.model.TreePathToRow
 import com.intellij.driver.sdk.ui.components.common.ideFrame
 import com.intellij.driver.sdk.ui.components.common.toolwindows.ProjectViewToolWindowUi
 import com.intellij.driver.sdk.ui.components.common.toolwindows.projectView
-import com.intellij.driver.sdk.ui.components.elements.popup
 import com.intellij.driver.sdk.ui.components.elements.popupMenu
 import com.intellij.driver.sdk.ui.ui
 import org.junit.jupiter.api.Test
+import java.awt.event.KeyEvent
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -47,7 +47,30 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
     }
 
     private fun Driver.verifyAddToScopeAction(config: UiTestConfig) {
+        if (openAddToScopePopupWithShortcut(config)) {
+            return
+        }
+
         openAddToScopeMenu(config)
+    }
+
+    private fun Driver.openAddToScopePopupWithShortcut(config: UiTestConfig): Boolean {
+        ideFrame {
+            projectView {
+                selectSampleFile(config.sampleFileNames, config.samplePath)
+                focusProjectViewTree()
+            }
+            keyboard {
+                hotKey(KeyEvent.VK_ALT, KeyEvent.VK_S)
+            }
+        }
+
+        if (popupContainsText("Create New...", 15.seconds)) {
+            return true
+        }
+
+        closePopupIfPresent()
+        return false
     }
 
     private fun Driver.openAddToScopeMenu(config: UiTestConfig, timeout: Duration = 30.seconds) {
@@ -74,7 +97,25 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
                         return
                     }
 
+                    ideFrame {
+                        keyboard {
+                            right()
+                        }
+                    }
+                    if (popupContainsText("Create New...", 5.seconds)) {
+                        return
+                    }
+
                     addToScopeItem.click()
+                    if (popupContainsText("Create New...", 5.seconds)) {
+                        return
+                    }
+
+                    ideFrame {
+                        keyboard {
+                            enter()
+                        }
+                    }
                     if (popupContainsText("Create New...", 5.seconds)) {
                         return
                     }
@@ -138,14 +179,9 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
 
     private fun Driver.closePopupIfPresent() {
         try {
-            ui.popup().close()
-            return
-        } catch (_: Throwable) {
-        }
-
-        try {
             ideFrame {
                 keyboard {
+                    escape()
                     escape()
                 }
             }
@@ -189,7 +225,7 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         sampleFileNames: Set<String>,
         samplePath: Array<String>
     ) {
-        projectViewTree.setFocus()
+        focusProjectViewTree()
 
         if (rightClickPath(samplePath)) {
             return
@@ -207,6 +243,10 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         throw AssertionError(
             "Could not right-click sample file in Project View. Expanded paths: ${expandedPaths.map { it.path }}"
         )
+    }
+
+    private fun ProjectViewToolWindowUi.focusProjectViewTree() {
+        projectViewTree.setFocus()
     }
 
     private fun ProjectViewToolWindowUi.expandVisiblePath(path: Array<String>) {
