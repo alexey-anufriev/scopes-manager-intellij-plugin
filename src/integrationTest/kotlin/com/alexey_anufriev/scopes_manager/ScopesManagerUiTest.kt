@@ -1,6 +1,7 @@
 package com.alexey_anufriev.scopes_manager
 
 import com.intellij.driver.client.Driver
+import com.intellij.driver.model.TreePathToRow
 import com.intellij.driver.sdk.ui.components.common.ideFrame
 import com.intellij.driver.sdk.ui.components.common.toolwindows.ProjectViewToolWindowUi
 import com.intellij.driver.sdk.ui.components.common.toolwindows.projectView
@@ -99,19 +100,27 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         sampleFileNames: Set<String>,
         samplePath: Array<String>
     ) {
-        expandVisiblePath(samplePath)
+        val deadline = System.nanoTime() + 60.seconds.inWholeNanoseconds
+        var expandedPaths = projectViewTree.collectExpandedPaths()
 
-        if (openContextMenuForPath(samplePath)) {
-            return
-        }
+        while (System.nanoTime() < deadline) {
+            expandVisiblePath(samplePath)
 
-        val expandedPaths = projectViewTree.collectExpandedPaths()
-        val row = expandedPaths.firstOrNull { path ->
-            path.path.last() in sampleFileNames
-        }?.row
+            if (openContextMenuForPath(samplePath)) {
+                return
+            }
 
-        if (row != null && (openContextMenuWithRightClick(row) || openContextMenuWithKeyboard(row))) {
-            return
+            expandedPaths = projectViewTree.collectExpandedPaths()
+            val row = expandedPaths.firstOrNull { path ->
+                path.path.last() in sampleFileNames
+            }?.row
+
+            if (row != null && (openContextMenuWithRightClick(row) || openContextMenuWithKeyboard(row))) {
+                return
+            }
+
+            expandProjectRoots(expandedPaths)
+            Thread.sleep(500)
         }
 
         throw AssertionError(
@@ -123,19 +132,27 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         sampleFileNames: Set<String>,
         samplePath: Array<String>
     ) {
-        expandVisiblePath(samplePath)
+        val deadline = System.nanoTime() + 60.seconds.inWholeNanoseconds
+        var expandedPaths = projectViewTree.collectExpandedPaths()
 
-        if (clickPath(samplePath)) {
-            return
-        }
+        while (System.nanoTime() < deadline) {
+            expandVisiblePath(samplePath)
 
-        val expandedPaths = projectViewTree.collectExpandedPaths()
-        val row = expandedPaths.firstOrNull { path ->
-            path.path.last() in sampleFileNames
-        }?.row
+            if (clickPath(samplePath)) {
+                return
+            }
 
-        if (row != null && clickRow(row)) {
-            return
+            expandedPaths = projectViewTree.collectExpandedPaths()
+            val row = expandedPaths.firstOrNull { path ->
+                path.path.last() in sampleFileNames
+            }?.row
+
+            if (row != null && clickRow(row)) {
+                return
+            }
+
+            expandProjectRoots(expandedPaths)
+            Thread.sleep(500)
         }
 
         throw AssertionError(
@@ -153,6 +170,20 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
                 Thread.sleep(300)
             }
         }
+    }
+
+    private fun ProjectViewToolWindowUi.expandProjectRoots(
+        paths: List<TreePathToRow>
+    ) {
+        paths
+            .filter { path -> path.path.size == 1 }
+            .filterNot { path -> path.path.last() in setOf("External Libraries", "Scratches and Consoles") }
+            .forEach { path ->
+                try {
+                    projectViewTree.doubleClickRow(path.row)
+                } catch (_: Exception) {
+                }
+            }
     }
 
     private fun ProjectViewToolWindowUi.openContextMenuForPath(path: Array<String>): Boolean {

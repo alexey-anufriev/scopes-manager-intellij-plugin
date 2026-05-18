@@ -284,8 +284,8 @@ tasks.register<Test>("integrationTestRustRoverLatestEap") {
             productCode = "RR",
             ideChannel = "eap",
             testProjectPath = "src/integrationTest/resources/test-projects/rustrover-project",
-            sampleFileNames = "Cargo.toml",
-            samplePath = "Cargo.toml",
+            sampleFileNames = "main.rs",
+            samplePath = "src/main.rs",
         ),
     )
 }
@@ -376,8 +376,8 @@ tasks.register<Test>("integrationTestRustRoverLatest") {
             displayName = "latest RustRover release",
             productCode = "RR",
             testProjectPath = "src/integrationTest/resources/test-projects/rustrover-project",
-            sampleFileNames = "Cargo.toml",
-            samplePath = "Cargo.toml",
+            sampleFileNames = "main.rs",
+            samplePath = "src/main.rs",
         ),
     )
 }
