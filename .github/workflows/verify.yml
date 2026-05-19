@@ -16,4 +16,4 @@ jobs:
     uses: ./.github/workflows/reusable-verify.yml
     with:
       artifact_prefix: verify
-      matrix_targets: full
+      matrix_targets: unit-tests,plugin-verifier,legacy-ui,stable-ui

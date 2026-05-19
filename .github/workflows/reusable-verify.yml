@@ -26,16 +26,32 @@ jobs:
         ALL_MATRIX='[
           {"name":"unit-tests","command":"./gradlew test","artifact_suffix":"unit-tests","xvfb":false},
           {"name":"plugin-verifier","command":"./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier","artifact_suffix":"plugin-verifier","xvfb":false},
-          {"name":"legacy-ui","command":"./gradlew integrationTestLegacyMatrix --stacktrace --info --no-daemon","artifact_suffix":"legacy-ui","xvfb":true},
-          {"name":"stable-ui","command":"./gradlew integrationTestStableMatrix --stacktrace --info --no-daemon","artifact_suffix":"stable-ui","xvfb":true},
-          {"name":"eap-ui","command":"./gradlew integrationTestEapMatrix --stacktrace --info --no-daemon","artifact_suffix":"eap-ui","xvfb":true}
+          {"name":"legacy-ui-idea-2025-1","command":"./gradlew integrationTest2025_1 --stacktrace --info --no-daemon","artifact_suffix":"legacy-ui-idea-2025-1","xvfb":true,"groups":["legacy-ui","ui"]},
+          {"name":"legacy-ui-idea-2025-2","command":"./gradlew integrationTest2025_2 --stacktrace --info --no-daemon","artifact_suffix":"legacy-ui-idea-2025-2","xvfb":true,"groups":["legacy-ui","ui"]},
+          {"name":"legacy-ui-idea-2025-3","command":"./gradlew integrationTest2025_3 --stacktrace --info --no-daemon","artifact_suffix":"legacy-ui-idea-2025-3","xvfb":true,"groups":["legacy-ui","ui"]},
+          {"name":"stable-ui-idea","command":"./gradlew integrationTestIdeaLatestRelease --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-idea","xvfb":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-clion","command":"./gradlew integrationTestCLionLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-clion","xvfb":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-goland","command":"./gradlew integrationTestGoLandLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-goland","xvfb":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-pycharm","command":"./gradlew integrationTestPyCharmLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-pycharm","xvfb":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-rider","command":"./gradlew integrationTestRiderLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rider","xvfb":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-rubymine","command":"./gradlew integrationTestRubyMineLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rubymine","xvfb":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-rustrover","command":"./gradlew integrationTestRustRoverLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rustrover","xvfb":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-webstorm","command":"./gradlew integrationTestWebStormLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-webstorm","xvfb":true,"groups":["stable-ui","ui"]},
+          {"name":"eap-ui-idea","command":"./gradlew integrationTestIdeaLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-idea","xvfb":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-clion","command":"./gradlew integrationTestCLionLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-clion","xvfb":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-goland","command":"./gradlew integrationTestGoLandLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-goland","xvfb":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-pycharm","command":"./gradlew integrationTestPyCharmLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-pycharm","xvfb":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-rider","command":"./gradlew integrationTestRiderLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rider","xvfb":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-rubymine","command":"./gradlew integrationTestRubyMineLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rubymine","xvfb":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-rustrover","command":"./gradlew integrationTestRustRoverLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rustrover","xvfb":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-webstorm","command":"./gradlew integrationTestWebStormLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-webstorm","xvfb":true,"groups":["eap-ui","ui"]}
         ]'
 
         if [ "${{ inputs.matrix_targets }}" = "full" ]; then
           MATRIX="$ALL_MATRIX"
         else
           TARGETS="${{ inputs.matrix_targets }}"
-          MATRIX="$(printf '%s' "$ALL_MATRIX" | jq -c --arg targets "$TARGETS" '($targets | split(",") | map(select(length > 0))) as $selected | [.[] | select(.name as $name | $selected | index($name))]')"
+          MATRIX="$(printf '%s' "$ALL_MATRIX" | jq -c --arg targets "$TARGETS" '($targets | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))) as $selected | [.[] | select((.name as $name | $selected | index($name)) or ((.groups // []) | any(. as $group | $selected | index($group))))]')"
         fi
 
         {
@@ -57,11 +73,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Free Disk Space
-      uses: jlumbroso/free-disk-space@v1.3.1
-      with:
-        tool-cache: true
-
     - name: Fetch Sources
       uses: actions/checkout@v6.0.2
 
@@ -104,11 +115,6 @@ jobs:
         include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
 
     steps:
-    - name: Free Disk Space
-      uses: jlumbroso/free-disk-space@v1.3.1
-      with:
-        tool-cache: true
-
     - name: Fetch Sources
       uses: actions/checkout@v6.0.2
 
