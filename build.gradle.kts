@@ -40,7 +40,7 @@ dependencies {
     }
 
     add(integrationTest.implementationConfigurationName, sourceSets["main"].output)
-    add(integrationTest.implementationConfigurationName, "org.junit.jupiter:junit-jupiter:6.0.3")
+    add(integrationTest.implementationConfigurationName, "org.junit.jupiter:junit-jupiter:6.1.0")
     add(integrationTest.implementationConfigurationName, "org.kodein.di:kodein-di-jvm:7.32.0")
     add(integrationTest.implementationConfigurationName, "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.11.0")
     // Required to deserialize AssertJ Swing exceptions returned by the remote Driver on CI.
@@ -48,7 +48,7 @@ dependencies {
 
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
 
     // Required by the IntelliJ JUnit 5 test framework until JetBrains fixes IJPL-159134.
