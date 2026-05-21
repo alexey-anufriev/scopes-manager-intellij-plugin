@@ -1,6 +1,5 @@
 package com.alexey_anufriev.scopes_manager.actions.switch
 
-import com.intellij.ide.scopeView.NamedScopeFilter
 import com.intellij.openapi.project.DumbAware
 import com.intellij.psi.search.scope.packageSet.InvalidPackageSet
 import com.intellij.psi.search.scope.packageSet.NamedScope
@@ -78,20 +77,39 @@ class SwitchScopeActionTest {
     }
 
     @Test
-    fun `should resolve scope view sub id from named scope filter`() {
+    fun `should resolve scope view sub id from exact scope sub id`() {
         val targetScope = scope("Target")
-        val otherFilter = NamedScopeFilter(holder(scope("Other")), scope("Other"))
-        val targetFilter = NamedScopeFilter(holder(targetScope), targetScope)
-        val filters = listOf(otherFilter, targetFilter)
+        val otherSubId = scopeViewSubId(scope("Other"))
+        val targetSubId = scopeViewSubId(targetScope)
 
-        val subId = resolveScopeViewSubId(targetScope, filters)
+        val subId = resolveScopeViewSubId(
+            targetScope,
+            listOf(otherSubId, targetSubId),
+            getPresentableSubIdName = { it.substringBefore("; ") },
+        )
 
-        assertThat(subId).isEqualTo(targetFilter.toString())
+        assertThat(subId).isEqualTo(targetSubId)
         assertThat(subId).isNotEqualTo(targetScope.scopeId)
+    }
+
+    @Test
+    fun `should resolve scope view sub id from presentable name when exact sub id is unavailable`() {
+        val targetScope = scope("Target")
+
+        val subId = resolveScopeViewSubId(
+            targetScope,
+            listOf("Other sub id", "Target sub id"),
+            getPresentableSubIdName = { subId -> subId.substringBefore(" sub id") },
+        )
+
+        assertThat(subId).isEqualTo("Target sub id")
     }
 
     private fun scope(name: String): NamedScope =
         NamedScope(name, InvalidPackageSet(name))
+
+    private fun scopeViewSubId(scope: NamedScope): String =
+        "${scope}; ${scope.javaClass}"
 
     private fun holder(vararg scopes: NamedScope): NamedScopesHolder = mock {
         on { editableScopes } doReturn scopes

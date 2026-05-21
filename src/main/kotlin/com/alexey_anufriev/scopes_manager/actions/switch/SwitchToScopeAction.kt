@@ -1,7 +1,6 @@
 package com.alexey_anufriev.scopes_manager.actions.switch
 
 import com.intellij.ide.projectView.ProjectView
-import com.intellij.ide.scopeView.NamedScopeFilter
 import com.intellij.ide.scopeView.ScopeViewPane
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.wm.ToolWindow
@@ -13,7 +12,7 @@ class SwitchToScopeAction(private val scope: NamedScope) : SwitchActionBase(scop
 
     override fun switchView(projectView: ProjectView, toolWindow: ToolWindow) {
         val scopePane = projectView.getProjectViewPaneById(ScopeViewPane.ID) as? ScopeViewPane
-        val scopeSubId = scopePane?.let { resolveScopeViewSubId(scope, it.getFilters()) }
+        val scopeSubId = scopePane?.let { resolveScopeViewSubId(scope, it) }
 
         if (scopeSubId != null) {
             projectView.changeView(ScopeViewPane.ID, scopeSubId)
@@ -23,9 +22,19 @@ class SwitchToScopeAction(private val scope: NamedScope) : SwitchActionBase(scop
     }
 }
 
-internal fun resolveScopeViewSubId(scope: NamedScope, filters: Iterable<NamedScopeFilter>): String? {
-    val matchingFilter = filters.firstOrNull { filter -> filter.scope === scope }
-        ?: filters.firstOrNull { filter -> filter.scope.scopeId == scope.scopeId }
+internal fun resolveScopeViewSubId(scope: NamedScope, scopePane: ScopeViewPane): String? =
+    resolveScopeViewSubId(
+        scope = scope,
+        subIds = scopePane.subIds.asIterable(),
+        getPresentableSubIdName = scopePane::getPresentableSubIdName,
+    )
 
-    return matchingFilter?.toString()
+internal fun resolveScopeViewSubId(
+    scope: NamedScope,
+    subIds: Iterable<String>,
+    getPresentableSubIdName: (String) -> String,
+): String? {
+    val expectedSubId = "${scope}; ${scope.javaClass}"
+    return subIds.firstOrNull { it == expectedSubId }
+        ?: subIds.firstOrNull { getPresentableSubIdName(it) == scope.presentableName }
 }

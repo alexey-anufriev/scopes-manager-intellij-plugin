@@ -82,6 +82,9 @@
     </actions>
 
     <change-notes><![CDATA[
+        1.15.1: Internal improvements
+        <br/>
+        <br/>
         1.15.0: New action "Switch Scope" (Alt+A / ⌥+A) added to switch the active scope
         in the Project view from the keyboard or using "Find Action".
         <br/>
