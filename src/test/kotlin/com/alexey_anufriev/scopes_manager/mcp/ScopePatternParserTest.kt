@@ -64,16 +64,23 @@ class ScopePatternParserTest {
     }
 
     @Test
-    fun `should fall back to text for intersection sets`() {
+    fun `should format intersection sets with readable AND markers`() {
         val set = IntersectionPackageSet.create(
             filePattern("src//*"),
             filePattern("*.kt"),
         )
 
-        assertThat(ScopePatternParser.parse(set))
-            .singleElement()
-            .asString()
-            .contains("&&")
+        assertThat(ScopePatternParser.parse(set)).containsExactly("src/", "AND *.kt")
+    }
+
+    @Test
+    fun `should format intersection sets with exclusions`() {
+        val set = IntersectionPackageSet.create(
+            filePattern("src//*"),
+            ComplementPackageSet(filePattern("src/test//*")),
+        )
+
+        assertThat(ScopePatternParser.parse(set)).containsExactly("src/", "AND !src/test/")
     }
 
     @Test

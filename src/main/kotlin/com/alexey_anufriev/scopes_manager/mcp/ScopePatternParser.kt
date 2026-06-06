@@ -2,6 +2,7 @@ package com.alexey_anufriev.scopes_manager.mcp
 
 import com.intellij.psi.search.scope.packageSet.ComplementPackageSet
 import com.intellij.psi.search.scope.packageSet.FilePatternPackageSet
+import com.intellij.psi.search.scope.packageSet.IntersectionPackageSet
 import com.intellij.psi.search.scope.packageSet.PackageSet
 import com.intellij.psi.search.scope.packageSet.PatternBasedPackageSet
 import com.intellij.psi.search.scope.packageSet.UnionPackageSet
@@ -25,10 +26,26 @@ object ScopePatternParser {
     ) {
         when (set) {
             is ComplementPackageSet -> collect(set.complementarySet, !include, resolve, into)
+            is IntersectionPackageSet -> collectIntersection(set, include, resolve, into)
             is UnionPackageSet -> set.sets.forEach { collect(it, include, resolve, into) }
             is FilePatternPackageSet -> resolve(set.modulePattern, set.pattern).forEach { into += format(it, include) }
             is PatternBasedPackageSet -> into += format(set.pattern, include)
             else -> into += format(set.text, include)
+        }
+    }
+
+    private fun collectIntersection(
+        set: IntersectionPackageSet,
+        include: Boolean,
+        resolve: FilePatternResolver,
+        into: MutableList<String>,
+    ) {
+        val parts = buildList {
+            set.sets.forEach { collect(it, include, resolve, this) }
+        }
+
+        parts.forEachIndexed { index, part ->
+            into += if (index == 0) part else "AND $part"
         }
     }
 
