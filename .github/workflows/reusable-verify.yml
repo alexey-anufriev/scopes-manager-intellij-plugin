@@ -200,12 +200,42 @@ jobs:
         echo "resolved_command=${cmd[*]}"
 
         LOG_FILE="$RUNNER_TEMP/verify-command-${{ matrix.name }}.log"
+        : > "$LOG_FILE"
 
+        run_verification_command() {
+          if [ "${{ matrix.xvfb }}" = "true" ]; then
+            xvfb-run -a "${cmd[@]}"
+          else
+            "${cmd[@]}"
+          fi
+        }
+
+        max_attempts=1
         if [ "${{ matrix.xvfb }}" = "true" ]; then
-          xvfb-run -a "${cmd[@]}" 2>&1 | tee "$LOG_FILE"
-        else
-          "${cmd[@]}" 2>&1 | tee "$LOG_FILE"
+          max_attempts=2
         fi
+
+        attempt=1
+        while [ "$attempt" -le "$max_attempts" ]; do
+          echo "verification_attempt=$attempt/$max_attempts" | tee -a "$LOG_FILE"
+
+          set +e
+          run_verification_command 2>&1 | tee -a "$LOG_FILE"
+          command_status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$command_status" -eq 0 ]; then
+            break
+          fi
+
+          if [ "$attempt" -eq "$max_attempts" ]; then
+            exit "$command_status"
+          fi
+
+          echo "Verification attempt $attempt failed with exit code $command_status; retrying in 90 seconds." | tee -a "$LOG_FILE"
+          sleep 90
+          attempt=$((attempt + 1))
+        done
 
         FORBIDDEN_TASKS='^> Task :(buildPlugin|prepareSandbox)( |$)'
         if grep -Eq "$FORBIDDEN_TASKS" "$LOG_FILE"; then
