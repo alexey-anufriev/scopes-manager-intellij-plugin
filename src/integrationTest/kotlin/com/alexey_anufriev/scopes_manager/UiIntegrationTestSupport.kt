@@ -1,8 +1,11 @@
 package com.alexey_anufriev.scopes_manager
 
 import com.intellij.driver.client.Driver
+import com.intellij.driver.client.Remote
+import com.intellij.driver.client.service
 import com.intellij.driver.model.OnDispatcher
 import com.intellij.driver.sdk.getToolWindow
+import com.intellij.driver.sdk.singleProject
 import com.intellij.driver.sdk.ui.components.common.dialogs.licenseDialog
 import com.intellij.driver.sdk.ui.components.elements.isDialogOpened
 import com.intellij.driver.sdk.ui.ui
@@ -28,6 +31,11 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 abstract class UiIntegrationTestSupport {
+
+    @Remote("com.intellij.openapi.project.DumbService")
+    interface DumbServiceRef {
+        fun isDumb(): Boolean
+    }
 
     protected data class UiTestConfig(
         val productCode: String,
@@ -105,8 +113,14 @@ abstract class UiIntegrationTestSupport {
     }
 
     protected fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
-        if (productCode == "RD" || productCode == "GO") {
+        if (productCode == "RD") {
             waitForToolWindow(toolWindowId, 180.seconds)
+            return
+        }
+
+        if (productCode == "GO") {
+            waitForToolWindow(toolWindowId, 180.seconds)
+            waitForSmartMode(180.seconds)
             return
         }
 
@@ -224,6 +238,25 @@ abstract class UiIntegrationTestSupport {
         }
 
         throw AssertionError("Timed out waiting for tool window '$toolWindowId' to become available", lastError)
+    }
+
+    private fun Driver.waitForSmartMode(timeout: Duration) {
+        val dumbService = service<DumbServiceRef>(singleProject())
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        var lastError: Throwable? = null
+
+        while (System.nanoTime() < deadline) {
+            try {
+                if (!dumbService.isDumb()) {
+                    return
+                }
+            } catch (t: Throwable) {
+                lastError = t
+            }
+            Thread.sleep(500)
+        }
+
+        throw AssertionError("Timed out waiting for IDE smart mode", lastError)
     }
 
     private fun Driver.waitForLicenseDialog(timeout: Duration): Boolean {
