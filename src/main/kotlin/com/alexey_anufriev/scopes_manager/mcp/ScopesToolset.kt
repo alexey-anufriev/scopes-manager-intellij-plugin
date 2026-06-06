@@ -17,7 +17,6 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.packageDependencies.DependencyValidationManager
 import com.intellij.psi.search.scope.packageSet.NamedScope
 import com.intellij.psi.search.scope.packageSet.NamedScopeManager
-import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
 import kotlinx.coroutines.currentCoroutineContext
 import org.jetbrains.jps.model.java.JavaResourceRootProperties
 import org.jetbrains.jps.model.java.JavaSourceRootProperties
@@ -29,11 +28,16 @@ class ScopesToolset : McpToolset {
     suspend fun getScopes(): String {
         val context = currentCoroutineContext()
         context.reportToolActivity("Collecting IntelliJ scopes")
-        val project = context.project
 
         val names = readAction {
-            val holders = project.scopeHolders()
-            collectScopeNames(holders.local, holders.shared)
+            val project = context.project
+            val scopes = NamedScopeManager.getInstance(project).editableScopes +
+                    DependencyValidationManager.getInstance(project).editableScopes
+
+            scopes
+                .map(NamedScope::getScopeId)
+                .distinct()
+                .sorted()
         }
 
         return if (names.isEmpty()) "No user-defined scopes in this project." else names.joinToString("\n")
@@ -42,7 +46,8 @@ class ScopesToolset : McpToolset {
     @McpTool(name = "get_scope_files")
     @McpDescription(
         "Return the files and folders that comprise a named IntelliJ scope. " +
-                "Recursive folders are shown with a trailing '/'. Takes one argument: 'name' (scope name)."
+        "Recursive folders are shown with a trailing '/', non-recursive folders with a trailing '/*'. " +
+        "Takes one argument: 'name' (scope name)."
     )
     suspend fun getScopeFiles(
         @McpDescription("Name of the IntelliJ scope to inspect.")
@@ -50,30 +55,26 @@ class ScopesToolset : McpToolset {
     ): String {
         val context = currentCoroutineContext()
         context.reportToolActivity("Resolving files for scope '$name'")
+
         val project = context.project
 
         val relativePats = readAction {
-            val packageSet = project.scopeHolders().findScope(name)?.value ?: return@readAction null
+            val packageSet = project.findScope(name)?.value ?: return@readAction null
             ScopePatternParser.parse(packageSet, project.filePatternResolver())
         } ?: mcpFail("Scope not found: $name")
 
-        return relativePats.joinToString("\n")
+        val visiblePatterns = relativePats.filter(String::isNotBlank)
+        return if (visiblePatterns.isEmpty()) {
+            "Scope '$name' is empty."
+        } else {
+            visiblePatterns.joinToString("\n")
+        }
     }
 
 }
 
-private data class ScopeHolders(
-    val local: NamedScopesHolder,
-    val shared: NamedScopesHolder,
-) {
-    fun findScope(name: String): NamedScope? =
-        local.getScope(name) ?: shared.getScope(name)
-}
-
-private fun Project.scopeHolders() = ScopeHolders(
-    local = NamedScopeManager.getInstance(this),
-    shared = DependencyValidationManager.getInstance(this),
-)
+private fun Project.findScope(name: String): NamedScope? =
+    NamedScopeManager.getInstance(this).getScope(name) ?: DependencyValidationManager.getInstance(this).getScope(name)
 
 private fun Project.filePatternResolver(): FilePatternResolver {
     val projectRoot = guessProjectDir()
@@ -83,6 +84,7 @@ private fun Project.filePatternResolver(): FilePatternResolver {
         if (modulePattern.isNullOrEmpty() || projectRoot == null) {
             return@resolver listOf(pattern)
         }
+
         val module = moduleManager.findModuleByName(modulePattern) ?: return@resolver listOf(pattern)
 
         val contentRootPaths = ModuleRootManager.getInstance(module).contentEntries
@@ -97,11 +99,20 @@ private fun Project.filePatternResolver(): FilePatternResolver {
     }
 }
 
+/**
+ * Keeps module content roots that either have no explicit source folders
+ * or contain at least one non-generated source/resource folder.
+ * This avoids expanding module-relative scope patterns into generated-only roots.
+ */
 private fun ContentEntry.hasUserSources(): Boolean {
     val folders = sourceFolders
     return folders.isEmpty() || folders.any { !it.isForGeneratedSources() }
 }
 
+/**
+ * Recognizes generated Java source/resource folders.
+ * Other source folder types are treated as user-owned.
+ */
 private fun SourceFolder.isForGeneratedSources(): Boolean {
     return when (val props = jpsElement.properties) {
         is JavaSourceRootProperties -> props.isForGeneratedSources
@@ -109,12 +120,3 @@ private fun SourceFolder.isForGeneratedSources(): Boolean {
         else -> false
     }
 }
-
-internal fun collectScopeNames(
-    localScopesManager: NamedScopesHolder,
-    sharedScopesManager: NamedScopesHolder
-): List<String> =
-    (localScopesManager.editableScopes + sharedScopesManager.editableScopes)
-        .map(NamedScope::getScopeId)
-        .distinct()
-        .sorted()
