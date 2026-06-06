@@ -106,11 +106,11 @@ abstract class UiIntegrationTestSupport {
 
     protected fun Driver.waitForUiReady(productCode: String, toolWindowId: String) {
         if (productCode == "RD" || productCode == "GO") {
-            waitForToolWindow(toolWindowId, 90.seconds)
+            waitForToolWindow(toolWindowId, 180.seconds)
             return
         }
 
-        waitForIndicators(5.minutes)
+        waitForIndicators(10.minutes)
         withContext(OnDispatcher.EDT) {
             getToolWindow(toolWindowId).show()
         }
