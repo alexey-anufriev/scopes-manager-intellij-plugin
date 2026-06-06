@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij.mcpServer">
+        <mcpToolset implementation="com.alexey_anufriev.scopes_manager.mcp.ScopesToolset"/>
+    </extensions>
+</idea-plugin>
