@@ -37,10 +37,10 @@ class ScopePatternParserTest {
     }
 
     @Test
-    fun `should convert single-slash star suffix to trailing slash`() {
+    fun `should preserve single-slash star suffix as non-recursive folder pattern`() {
         val set = filePattern("src/a/*")
 
-        assertThat(ScopePatternParser.parse(set)).containsExactly("src/a/")
+        assertThat(ScopePatternParser.parse(set)).containsExactly("src/a/*")
     }
 
     @Test

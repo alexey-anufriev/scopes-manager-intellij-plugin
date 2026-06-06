@@ -35,7 +35,6 @@ object ScopePatternParser {
     private fun format(path: String, include: Boolean): String {
         val normalized = when {
             path.endsWith("//*") -> path.dropLast(3) + "/"
-            path.endsWith("/*") -> path.dropLast(2) + "/"
             else -> path
         }
         return if (include) normalized else "!$normalized"

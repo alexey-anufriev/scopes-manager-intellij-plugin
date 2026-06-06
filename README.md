@@ -61,14 +61,12 @@ Allows to clear the scope content completely.
 ### MCP Server Integration
 
 When the bundled [MCP Server](https://plugins.jetbrains.com/plugin/26071-mcp-server) plugin is enabled,
-Scopes Manager exposes two tools to MCP clients (Claude Code, Cursor, etc.):
+Scopes Manager exposes two tools to MCP clients:
 
-* `get_scopes` — returns the names of all user-defined scopes (local + shared).
-* `get_scope_files(name)` — returns the files and folders that comprise the given scope as
-  project-relative physical paths, with a trailing `/` on recursive folders. Module
-  patterns are resolved to actual content roots (excluding generated sources), so output
-  matches what users see in the Project view for both single-module and multi-module
-  Gradle/Maven layouts.
+* `get_scopes` - returns the names of all user-defined scopes (local + shared)
+* `get_scope_files(name)` - returns the files and folders that comprise the given scope as project-relative physical paths.
+  Recursive folders end with `/`; non-recursive folder patterns keep original `/*` suffix.
+  Module patterns are resolved to actual content roots (excluding generated sources), so output matches what users see in the Project view.
 
 This lets AI assistants reason about how the project is structured beyond the file tree.
 
