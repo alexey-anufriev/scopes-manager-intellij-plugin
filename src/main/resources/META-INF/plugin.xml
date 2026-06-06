@@ -32,7 +32,7 @@
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.tasks</depends>
+    <depends optional="true" config-file="plugin-tasks.xml">com.intellij.tasks</depends>
     <depends optional="true" config-file="plugin-rider.xml">com.intellij.modules.rider</depends>
     <depends optional="true" config-file="plugin-mcp.xml">com.intellij.mcpServer</depends>
 

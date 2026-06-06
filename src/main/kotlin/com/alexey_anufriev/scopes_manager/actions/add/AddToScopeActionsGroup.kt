@@ -51,7 +51,26 @@ class AddToScopeActionsGroup : ScopeGroupActionBase() {
             .toArray { size -> arrayOfNulls(size) }
     }
 
+    /**
+     * Adds task-derived scope creation actions when the optional Tasks plugin is available.
+     * IDEs without Tasks, such as GoLand, skip these entries but keep regular scope actions.
+     */
     private fun getActionsForTaskManager(
+        project: Project,
+        localScopesManager: NamedScopesHolder,
+        sharedScopesManager: NamedScopesHolder
+    ): Array<AnAction> {
+
+        return try {
+            getActionsForAvailableTaskManager(project, localScopesManager, sharedScopesManager)
+        } catch (_: NoClassDefFoundError) { // in case if Tasks plugin is not available
+            emptyArray()
+        } catch (_: ClassNotFoundException) { // in case if Tasks plugin is not available
+            emptyArray()
+        }
+    }
+
+    private fun getActionsForAvailableTaskManager(
         project: Project,
         localScopesManager: NamedScopesHolder,
         sharedScopesManager: NamedScopesHolder
