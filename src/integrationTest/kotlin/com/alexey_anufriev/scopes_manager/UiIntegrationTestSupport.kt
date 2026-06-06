@@ -24,7 +24,6 @@ import com.intellij.ide.starter.runner.SetupException
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
-import java.io.File
 import java.nio.file.Path
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -73,7 +72,7 @@ abstract class UiIntegrationTestSupport {
             ideUnderTest
         ).apply {
             addProjectToTrustedLocations(config.projectHome)
-            PluginConfigurator(this).installPluginFromFolder(File(System.getProperty("path.to.build.plugin")))
+            PluginConfigurator(this).installPluginFromDir(Path.of(System.getProperty("path.to.build.plugin")))
         }
 
         context.runIdeWithDriver(runTimeout = 3.minutes).useDriverAndCloseIde {
