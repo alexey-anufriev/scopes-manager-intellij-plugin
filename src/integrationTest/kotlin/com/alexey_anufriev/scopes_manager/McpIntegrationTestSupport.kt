@@ -1,6 +1,5 @@
 package com.alexey_anufriev.scopes_manager
 
-import com.intellij.driver.client.Remote
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -12,32 +11,29 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
-import java.io.BufferedReader
-import java.io.BufferedWriter
 import java.io.Closeable
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.util.concurrent.TimeUnit
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
 
 const val MCP_PLUGIN_ID = "com.intellij.mcpServer"
 
-@Remote("com.intellij.execution.configurations.GeneralCommandLine")
-interface GeneralCommandLineRef {
-    fun getExePath(): String
-    fun getParametersList(): ParametersListRef
-}
+private const val MCP_PROJECT_PATH_HEADER = "IJ_MCP_SERVER_PROJECT_PATH"
+private const val MCP_SESSION_ID_HEADER = "mcp-session-id"
+private val MCP_JSON = Json { ignoreUnknownKeys = true }
+private val EMPTY_PARAMS: JsonObject = buildJsonObject {}
 
-@Remote("com.intellij.execution.configurations.ParametersList")
-interface ParametersListRef {
-    fun getParameters(): List<String>
-}
-
-class McpStdioClient private constructor(
-    private val process: Process,
+class McpHttpClient private constructor(
+    private val streamUri: URI,
+    private val projectPath: String,
 ) : Closeable {
-    private val reader = BufferedReader(InputStreamReader(process.inputStream))
-    private val writer = BufferedWriter(OutputStreamWriter(process.outputStream))
+    private val client = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .build()
     private var nextId = 1
+    private var sessionId: String? = null
 
     fun initialize() {
         request(
@@ -83,7 +79,7 @@ class McpStdioClient private constructor(
 
     private fun request(method: String, params: JsonObject = EMPTY_PARAMS): JsonObject {
         val id = nextId++
-        writeJson(
+        val response = send(
             buildJsonObject {
                 put("jsonrpc", "2.0")
                 put("id", id)
@@ -92,62 +88,92 @@ class McpStdioClient private constructor(
             },
         )
 
-        while (true) {
-            val response = readJson()
-            val responseId = response["id"]?.jsonPrimitive?.int
-            if (responseId == id) {
-                response["error"]?.let { throw AssertionError("MCP request '$method' failed: $it") }
-                return response
-            }
+        val responseId = response["id"]?.jsonPrimitive?.int
+        if (responseId != id) {
+            throw AssertionError("MCP HTTP request '$method' returned response id '$responseId' instead of '$id': $response")
         }
+        response["error"]?.let { throw AssertionError("MCP HTTP request '$method' failed: $it") }
+        return response
     }
 
     private fun notification(method: String, params: JsonObject = EMPTY_PARAMS) {
-        writeJson(
+        send(
             buildJsonObject {
                 put("jsonrpc", "2.0")
                 put("method", method)
                 put("params", params)
             },
+            expectResponseBody = false,
         )
     }
 
-    private fun writeJson(value: JsonObject) {
-        json.encodeToString(JsonObject.serializer(), value).also { line ->
-            writer.write(line)
-            writer.newLine()
-            writer.flush()
+    private fun send(value: JsonObject, expectResponseBody: Boolean = true): JsonObject {
+        val request = HttpRequest.newBuilder(streamUri)
+            .timeout(Duration.ofSeconds(30))
+            .header("Accept", "application/json, text/event-stream")
+            .header("Content-Type", "application/json")
+            .header(MCP_PROJECT_PATH_HEADER, projectPath)
+            .apply {
+                sessionId?.let { header(MCP_SESSION_ID_HEADER, it) }
+            }
+            .POST(HttpRequest.BodyPublishers.ofString(MCP_JSON.encodeToString(JsonObject.serializer(), value)))
+            .build()
+
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        sessionId = response.headers().firstValue(MCP_SESSION_ID_HEADER).orElse(sessionId)
+
+        if (response.statusCode() !in 200..299) {
+            throw AssertionError("MCP HTTP request failed with status ${response.statusCode()}: ${response.body()}")
         }
+
+        val body = response.body().trim()
+        if (body.isEmpty()) {
+            if (!expectResponseBody) {
+                return EMPTY_PARAMS
+            }
+            throw AssertionError("MCP HTTP request returned an empty response body")
+        }
+        if (!expectResponseBody && body == "null") {
+            return EMPTY_PARAMS
+        }
+
+        return parseHttpResponseBody(body)
     }
 
-    private fun readJson(): JsonObject {
-        val line = reader.readLine() ?: throw AssertionError("MCP stdio process exited before sending a response")
-        return json.parseToJsonElement(line).jsonObject
+    private fun parseHttpResponseBody(body: String): JsonObject {
+        if (!body.startsWith("event:") && !body.startsWith("data:") && !body.startsWith(":")) {
+            return MCP_JSON.parseToJsonElement(body).jsonObject
+        }
+
+        val data = body.lineSequence()
+            .filter { it.startsWith("data:") }
+            .map { it.removePrefix("data:").trimStart() }
+            .firstOrNull { it != "null" }
+            ?.trim()
+
+        if (data.isNullOrEmpty()) {
+            throw AssertionError("MCP HTTP SSE response did not contain a data payload: $body")
+        }
+        return MCP_JSON.parseToJsonElement(data).jsonObject
     }
 
     override fun close() {
-        process.destroy()
-        if (!process.waitFor(5, TimeUnit.SECONDS)) {
-            process.destroyForcibly()
+        sessionId?.let { id ->
+            val request = HttpRequest.newBuilder(streamUri)
+                .timeout(Duration.ofSeconds(10))
+                .header(MCP_PROJECT_PATH_HEADER, projectPath)
+                .header(MCP_SESSION_ID_HEADER, id)
+                .DELETE()
+                .build()
+            client.send(request, HttpResponse.BodyHandlers.discarding())
         }
     }
 
     companion object {
-        private val json = Json { ignoreUnknownKeys = true }
-        private val EMPTY_PARAMS: JsonObject = buildJsonObject {}
-
-        fun from(command: GeneralCommandLineRef, port: Int, projectPath: String): McpStdioClient {
-            val process = ProcessBuilder(listOf(command.getExePath()) + command.getParametersList().getParameters())
-                .apply {
-                    environment()["IJ_MCP_SERVER_PORT"] = port.toString()
-                    environment()["IJ_MCP_SERVER_PROJECT_PATH"] = projectPath
-                }
-                .redirectError(ProcessBuilder.Redirect.INHERIT)
-                .start()
-            return McpStdioClient(process)
-        }
-
-        private fun JsonObject.resultObject(): JsonObject =
-            getValue("result").jsonObject
+        fun from(port: Int, projectPath: String): McpHttpClient =
+            McpHttpClient(URI.create("http://127.0.0.1:$port/stream"), projectPath)
     }
 }
+
+private fun JsonObject.resultObject(): JsonObject =
+    getValue("result").jsonObject

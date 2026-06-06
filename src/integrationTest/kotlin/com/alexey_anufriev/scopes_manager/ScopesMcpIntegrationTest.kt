@@ -32,16 +32,8 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
     interface McpServerServiceRef {
         fun start()
         fun stop()
+        fun isRunning(): Boolean
         fun getPort(): Int
-    }
-
-    @Remote("com.intellij.mcpserver.StdioRunnerUtilKt", plugin = MCP_PLUGIN_ID)
-    interface StdioRunnerUtilRef {
-        fun createStdioMcpServerCommandLine(
-            port: Int,
-            projectPath: String?,
-            extraEnv: Any?,
-        ): GeneralCommandLineRef
     }
 
     @Remote("com.intellij.psi.search.scope.packageSet.NamedScope")
@@ -77,13 +69,7 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
                     val server = service<McpServerServiceRef>()
                     server.start()
                     try {
-                        McpStdioClient.from(
-                            command = utility<StdioRunnerUtilRef>()
-                                .createStdioMcpServerCommandLine(
-                                    port = server.getPort(),
-                                    projectPath = uiConfig.projectHome.toAbsolutePath().toString(),
-                                    extraEnv = null,
-                                ),
+                        McpHttpClient.from(
                             port = server.getPort(),
                             projectPath = uiConfig.projectHome.toAbsolutePath().toString(),
                         ).use { client ->
@@ -112,6 +98,7 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
                         }
                     } finally {
                         server.stop()
+                        waitForMcpServerStopped(server)
                     }
                 }
             }
@@ -122,6 +109,15 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
     }
 
     override fun testContextName(): String = "scopes-manager-mcp-integration"
+
+    private fun waitForMcpServerStopped(server: McpServerServiceRef) {
+        repeat(50) {
+            if (!server.isRunning()) {
+                return
+            }
+            Thread.sleep(100)
+        }
+    }
 
     private fun Driver.assertMcpServerPluginEnabled() {
         val pluginId = utility<PluginIdUtilRef>().getId(MCP_PLUGIN_ID)
