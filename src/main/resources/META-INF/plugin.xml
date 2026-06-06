@@ -32,6 +32,7 @@
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.tasks</depends>
     <depends optional="true" config-file="plugin-rider.xml">com.intellij.modules.rider</depends>
     <depends optional="true" config-file="plugin-mcp.xml">com.intellij.mcpServer</depends>
 
@@ -83,7 +84,11 @@
     </actions>
 
     <change-notes><![CDATA[
-        1.16.0: MCP Server integration. When the bundled MCP Server plugin is enabled, Scopes Manager exposes two tools to MCP clients (Claude Code, Cursor, etc.): "get_scopes" and "get_scope_files". Lets AI assistants reason about your scope definitions.
+        2.0.0: Upgrade the minimum compatible IntelliJ Platform build to 253.* (2025.3).
+        This release targets the newer MCP Server API (bundled MCP Server API was unstable across the 252.* line).
+        <br/>
+        Adds MCP Server integration. When the bundled MCP Server plugin is enabled, Scopes Manager exposes
+        two tools to MCP clients: <pre>get_scopes</pre> and <pre>get_scope_files</pre>. Lets AI assistants reason about your scope definitions.
         <br/>
         <br/>
         1.15.1: Internal improvements

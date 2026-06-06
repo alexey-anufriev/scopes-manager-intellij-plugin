@@ -12,10 +12,10 @@ plugins {
 }
 
 group = "com.alexey-anufriev"
-version = "1.16.0"
+version = "2.0.0"
 
-val ide = (findProperty("ide") ?: "IC").toString()
-val platformVersion = "2025.1"
+val ide = (findProperty("ide") ?: "IU").toString()
+val platformVersion = "2025.3"
 val builtPluginDir = findProperty("builtPluginDir")?.toString()
 val builtPluginArchive = findProperty("builtPluginArchive")?.toString()
 
@@ -34,7 +34,8 @@ repositories {
 dependencies {
     intellijPlatform {
         create(ide, platformVersion)
-        plugin("com.intellij.mcpServer", "252.28238.29")
+        bundledPlugin("com.intellij.tasks")
+        bundledPlugin("com.intellij.mcpServer")
         testFramework(TestFrameworkType.Starter)
         pluginVerifier()
         zipSigner()
@@ -68,7 +69,7 @@ intellijPlatform {
         version = project.version.toString()
 
         ideaVersion {
-            sinceBuild = "251"
+            sinceBuild = "253"
             untilBuild = provider { null }
         }
     }
@@ -151,28 +152,6 @@ tasks.named<PublishPluginTask>("publishPlugin") {
         archiveFile.set(file(it))
         setDependsOn(emptyList<Any>()) // avoid rebuild
     }
-}
-
-tasks.register<Test>("integrationTest2025_1") {
-    configureUiIntegrationTest(
-        integrationTest,
-        UiIntegrationTestConfig(
-            displayName = "IntelliJ IDEA Community 2025.1",
-            productCode = "IC",
-            ideVersion = "2025.1",
-        ),
-    )
-}
-
-tasks.register<Test>("integrationTest2025_2") {
-    configureUiIntegrationTest(
-        integrationTest,
-        UiIntegrationTestConfig(
-            displayName = "IntelliJ IDEA Community 2025.2",
-            productCode = "IC",
-            ideVersion = "2025.2",
-        ),
-    )
 }
 
 tasks.register<Test>("integrationTest2025_3") {
@@ -397,8 +376,6 @@ tasks.register<Test>("integrationTestWebStormLatest") {
 }
 
 val legacyUiIntegrationTests = listOf(
-    "integrationTest2025_1",
-    "integrationTest2025_2",
     "integrationTest2025_3",
 )
 
