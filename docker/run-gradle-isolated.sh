@@ -29,7 +29,6 @@ rsync -a --delete \
   --exclude='/.intellijPlatform/' \
   --exclude='/.kotlin/' \
   --exclude='/allure-results/' \
-  --exclude='/.ci/' \
   --exclude='/build/' \
   --exclude='/out/' \
   /source/ /work/
