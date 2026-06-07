@@ -47,11 +47,16 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
     }
 
     private fun Driver.verifyAddToScopeAction(config: UiTestConfig) {
-        if (openAddToScopePopupWithShortcut(config)) {
+        try {
+            openAddToScopeMenu(config)
             return
-        }
+        } catch (menuError: Throwable) {
+            if (openAddToScopePopupWithShortcut(config)) {
+                return
+            }
 
-        openAddToScopeMenu(config)
+            throw menuError
+        }
     }
 
     private fun Driver.openAddToScopePopupWithShortcut(config: UiTestConfig): Boolean {
@@ -87,40 +92,17 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
                     }
                 }
 
-                if (popupContainsText("Add to Scope", 5.seconds)) {
-                    val menu = ui.popupMenu()
-                    lastPopupItems = menu.itemsList()
-                    val addToScopeItem = menu.findMenuItemByText("Add to Scope")
+                lastPopupItems = popupItemsOrEmpty()
 
-                    addToScopeItem.moveMouse()
-                    if (popupContainsText("Create New...", 5.seconds)) {
+                if (popupContainsText("Add to Scope", 2.seconds) && openAddToScopeSubmenu()) {
+                    return
+                }
+
+                if (lastPopupItems.any { it == "Other" }) {
+                    if (openPopupSubmenu("Other", "Add to Scope") && openAddToScopeSubmenu()) {
                         return
                     }
-
-                    ideFrame {
-                        keyboard {
-                            right()
-                        }
-                    }
-                    if (popupContainsText("Create New...", 5.seconds)) {
-                        return
-                    }
-
-                    addToScopeItem.click()
-                    if (popupContainsText("Create New...", 5.seconds)) {
-                        return
-                    }
-
-                    ideFrame {
-                        keyboard {
-                            enter()
-                        }
-                    }
-                    if (popupContainsText("Create New...", 5.seconds)) {
-                        return
-                    }
-                } else {
-                    lastPopupItems = popupItemsOrEmpty()
+                    lastPopupItems = lastPopupItems + listOf("Other -> ${popupItemsOrEmpty()}")
                 }
             } catch (t: Throwable) {
                 lastError = t
@@ -134,6 +116,40 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
             "Add to Scope action popup did not contain 'Create New...'. Popup items: $lastPopupItems",
             lastError
         )
+    }
+
+    private fun Driver.openAddToScopeSubmenu(): Boolean {
+        return openPopupSubmenu("Add to Scope", "Create New...")
+    }
+
+    private fun Driver.openPopupSubmenu(text: String, expectedChildText: String): Boolean {
+        val item = ui.popupMenu().findMenuItemByText(text)
+
+        item.moveMouse()
+        if (popupContainsText(expectedChildText, 2.seconds)) {
+            return true
+        }
+
+        ideFrame {
+            keyboard {
+                right()
+            }
+        }
+        if (popupContainsText(expectedChildText, 2.seconds)) {
+            return true
+        }
+
+        item.click()
+        if (popupContainsText(expectedChildText, 2.seconds)) {
+            return true
+        }
+
+        ideFrame {
+            keyboard {
+                enter()
+            }
+        }
+        return popupContainsText(expectedChildText, 2.seconds)
     }
 
     private fun Driver.popupContainsText(expectedText: String, timeout: Duration = 3.seconds): Boolean {
