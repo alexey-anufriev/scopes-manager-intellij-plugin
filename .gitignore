@@ -1,6 +1,7 @@
 build
 out
 allure-results
+.ci
 .gradle
 .idea
 .intellijPlatform

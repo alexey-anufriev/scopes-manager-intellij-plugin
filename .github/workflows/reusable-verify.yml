@@ -24,25 +24,25 @@ jobs:
       shell: bash
       run: |
         ALL_MATRIX='[
-          {"name":"unit-tests","command":"./gradlew test","artifact_suffix":"unit-tests","xvfb":false},
-          {"name":"plugin-verifier","command":"./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier","artifact_suffix":"plugin-verifier","xvfb":false},
-          {"name":"legacy-ui-idea-2025-3","command":"./gradlew integrationTest2025_3 --stacktrace --info --no-daemon","artifact_suffix":"legacy-ui-idea-2025-3","xvfb":true,"groups":["legacy-ui","ui"]},
-          {"name":"stable-ui-idea","command":"./gradlew integrationTestIdeaLatestRelease --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-idea","xvfb":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-clion","command":"./gradlew integrationTestCLionLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-clion","xvfb":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-goland","command":"./gradlew integrationTestGoLandLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-goland","xvfb":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-pycharm","command":"./gradlew integrationTestPyCharmLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-pycharm","xvfb":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-rider","command":"./gradlew integrationTestRiderLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rider","xvfb":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-rubymine","command":"./gradlew integrationTestRubyMineLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rubymine","xvfb":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-rustrover","command":"./gradlew integrationTestRustRoverLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rustrover","xvfb":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-webstorm","command":"./gradlew integrationTestWebStormLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-webstorm","xvfb":true,"groups":["stable-ui","ui"]},
-          {"name":"eap-ui-idea","command":"./gradlew integrationTestIdeaLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-idea","xvfb":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-clion","command":"./gradlew integrationTestCLionLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-clion","xvfb":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-goland","command":"./gradlew integrationTestGoLandLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-goland","xvfb":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-pycharm","command":"./gradlew integrationTestPyCharmLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-pycharm","xvfb":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-rider","command":"./gradlew integrationTestRiderLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rider","xvfb":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-rubymine","command":"./gradlew integrationTestRubyMineLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rubymine","xvfb":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-rustrover","command":"./gradlew integrationTestRustRoverLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rustrover","xvfb":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-webstorm","command":"./gradlew integrationTestWebStormLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-webstorm","xvfb":true,"groups":["eap-ui","ui"]}
+          {"name":"unit-tests","command":"./gradlew test","artifact_suffix":"unit-tests","containerized":false},
+          {"name":"plugin-verifier","command":"./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier","artifact_suffix":"plugin-verifier","containerized":false},
+          {"name":"legacy-ui-idea-2025-3","command":"./gradlew integrationTest2025_3 --stacktrace --info --no-daemon","artifact_suffix":"legacy-ui-idea-2025-3","containerized":true,"groups":["legacy-ui","ui"]},
+          {"name":"stable-ui-idea","command":"./gradlew integrationTestIdeaLatestRelease --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-idea","containerized":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-clion","command":"./gradlew integrationTestCLionLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-clion","containerized":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-goland","command":"./gradlew integrationTestGoLandLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-goland","containerized":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-pycharm","command":"./gradlew integrationTestPyCharmLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-pycharm","containerized":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-rider","command":"./gradlew integrationTestRiderLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rider","containerized":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-rubymine","command":"./gradlew integrationTestRubyMineLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rubymine","containerized":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-rustrover","command":"./gradlew integrationTestRustRoverLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rustrover","containerized":true,"groups":["stable-ui","ui"]},
+          {"name":"stable-ui-webstorm","command":"./gradlew integrationTestWebStormLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-webstorm","containerized":true,"groups":["stable-ui","ui"]},
+          {"name":"eap-ui-idea","command":"./gradlew integrationTestIdeaLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-idea","containerized":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-clion","command":"./gradlew integrationTestCLionLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-clion","containerized":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-goland","command":"./gradlew integrationTestGoLandLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-goland","containerized":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-pycharm","command":"./gradlew integrationTestPyCharmLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-pycharm","containerized":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-rider","command":"./gradlew integrationTestRiderLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rider","containerized":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-rubymine","command":"./gradlew integrationTestRubyMineLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rubymine","containerized":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-rustrover","command":"./gradlew integrationTestRustRoverLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rustrover","containerized":true,"groups":["eap-ui","ui"]},
+          {"name":"eap-ui-webstorm","command":"./gradlew integrationTestWebStormLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-webstorm","containerized":true,"groups":["eap-ui","ui"]}
         ]'
 
         if [ "${{ inputs.matrix_targets }}" = "full" ]; then
@@ -131,9 +131,6 @@ jobs:
       with:
         go-version: '1.25'
 
-    - name: Install Xvfb
-      run: sudo apt-get update && sudo apt-get install -y xvfb
-
     - name: Download Plugin Archive
       uses: actions/download-artifact@v8
       with:
@@ -171,9 +168,11 @@ jobs:
 
         echo "BUILT_PLUGIN_ARCHIVE=$BUILT_PLUGIN_ARCHIVE" >> "$GITHUB_ENV"
         echo "BUILT_PLUGIN_DIR=$BUILT_PLUGIN_DIR" >> "$GITHUB_ENV"
+        echo "BUILT_PLUGIN_DIR_CONTAINER=.ci/extracted-plugin/$(basename "$BUILT_PLUGIN_DIR")" >> "$GITHUB_ENV"
 
         echo "built_plugin_archive=$BUILT_PLUGIN_ARCHIVE"
         echo "built_plugin_dir=$BUILT_PLUGIN_DIR"
+        echo "built_plugin_dir_container=.ci/extracted-plugin/$(basename "$BUILT_PLUGIN_DIR")"
         echo "extracted_plugin_contents:"
         find "$BUILT_PLUGIN_DIR" -maxdepth 2 -print | sort
 
@@ -185,14 +184,15 @@ jobs:
         echo "matrix_name=${{ matrix.name }}"
         echo "matrix_command=${{ matrix.command }}"
         echo "matrix_artifact_suffix=${{ matrix.artifact_suffix }}"
-        echo "matrix_xvfb=${{ matrix.xvfb }}"
+        echo "matrix_containerized=${{ matrix.containerized }}"
+        echo "built_plugin_dir_container=${BUILT_PLUGIN_DIR_CONTAINER:-}"
 
         cmd=(${{ matrix.command }})
         if [ "${{ matrix.name }}" = "plugin-verifier" ]; then
           cmd+=("-PbuiltPluginArchive=$BUILT_PLUGIN_ARCHIVE")
         fi
-        if [ "${{ matrix.xvfb }}" = "true" ]; then
-          cmd+=("-PbuiltPluginDir=$BUILT_PLUGIN_DIR")
+        if [ "${{ matrix.containerized }}" = "true" ]; then
+          cmd+=("-PbuiltPluginDir=$BUILT_PLUGIN_DIR_CONTAINER")
         fi
 
         echo "resolved_command=${cmd[*]}"
@@ -201,15 +201,15 @@ jobs:
         : > "$LOG_FILE"
 
         run_verification_command() {
-          if [ "${{ matrix.xvfb }}" = "true" ]; then
-            xvfb-run -a "${cmd[@]}"
+          if [ "${{ matrix.containerized }}" = "true" ]; then
+            scripts/run-isolated-integration-test.sh "${cmd[@]:1}"
           else
             "${cmd[@]}"
           fi
         }
 
         max_attempts=1
-        if [ "${{ matrix.xvfb }}" = "true" ]; then
+        if [ "${{ matrix.containerized }}" = "true" ]; then
           max_attempts=2
         fi
 

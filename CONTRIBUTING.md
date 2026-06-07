@@ -49,3 +49,16 @@ Signed-off-by: Your Name <you@example.com>
 - Confirm that every commit is signed off.
 
 Maintainers may require follow-up changes before merge.
+
+## Integration Tests
+
+Run IDE integration tests in a disposable container to isolate them
+from host JetBrains IDE, Toolbox, license, and previous test state:
+
+```bash
+scripts/run-isolated-integration-test.sh integrationTestCLionLatest
+```
+
+The runner builds a local Docker image, mounts this repository read-only,
+copies it into a fresh workspace inside the container, excludes host build
+and IDE cache directories, and runs the Gradle task headlessly.

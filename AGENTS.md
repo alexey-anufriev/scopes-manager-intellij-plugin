@@ -1,5 +1,4 @@
 # Codex Instructions
 
-- Run IntelliJ UI and integration tests headlessly with `xvfb-run -a`.
-- Do not run IDE integration tests directly without Xvfb unless the user explicitly asks for foreground UI.
-- If a trial/license activation dialog appears during IDE test execution, interrupt the test run and report it; do not add skips, hacks, or workarounds for licensing state.
+- Run IDE integration tests with `scripts/run-isolated-integration-test.sh <gradle-task>` so they execute headlessly in a disposable container.
+- Do not mount host JetBrains, Toolbox, IDE cache, or license directories into the container. If a trial/license activation dialog appears, interrupt the test run and report it; do not add skips, hacks, or workarounds for licensing state.
