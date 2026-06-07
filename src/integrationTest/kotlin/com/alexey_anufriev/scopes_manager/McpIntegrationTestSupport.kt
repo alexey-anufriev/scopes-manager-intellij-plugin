@@ -11,12 +11,20 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import org.junit.jupiter.api.Assertions.assertEquals
+import java.io.BufferedReader
 import java.io.Closeable
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.charset.StandardCharsets
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 const val MCP_PLUGIN_ID = "com.intellij.mcpServer"
 
@@ -26,27 +34,39 @@ private val MCP_JSON = Json { ignoreUnknownKeys = true }
 private val EMPTY_PARAMS: JsonObject = buildJsonObject {}
 
 class McpHttpClient private constructor(
-    private val streamUri: URI,
+    private val baseUri: URI,
     private val projectPath: String,
 ) : Closeable {
+    private val streamUri = baseUri.resolve("/stream")
     private val client = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(10))
         .build()
     private var nextId = 1
     private var sessionId: String? = null
+    private var legacyMessageUri: URI? = null
+    private var legacyStream: InputStream? = null
+    private var legacyReaderThread: Thread? = null
+    private val legacyResponses = LinkedBlockingQueue<JsonObject>()
+    private val legacyReadError = AtomicReference<Throwable?>()
 
     fun initialize() {
-        request(
-            "initialize",
-            buildJsonObject {
-                put("protocolVersion", "2024-11-05")
-                putJsonObject("capabilities") {}
-                putJsonObject("clientInfo") {
-                    put("name", "scopes-manager-integration-test")
-                    put("version", "1.0.0")
-                }
-            },
-        )
+        val params = buildJsonObject {
+            put("protocolVersion", "2024-11-05")
+            putJsonObject("capabilities") {}
+            putJsonObject("clientInfo") {
+                put("name", "scopes-manager-integration-test")
+                put("version", "1.0.0")
+            }
+        }
+        try {
+            request("initialize", params)
+        } catch (error: McpHttpStatusException) {
+            if (error.statusCode != 404) {
+                throw error
+            }
+            startLegacySseTransport()
+            request("initialize", params)
+        }
         notification("notifications/initialized")
     }
 
@@ -108,6 +128,8 @@ class McpHttpClient private constructor(
     }
 
     private fun send(value: JsonObject, expectResponseBody: Boolean = true): JsonObject {
+        legacyMessageUri?.let { return sendLegacySse(it, value, expectResponseBody) }
+
         val request = HttpRequest.newBuilder(streamUri)
             .timeout(Duration.ofSeconds(30))
             .header("Accept", "application/json, text/event-stream")
@@ -123,7 +145,7 @@ class McpHttpClient private constructor(
         sessionId = response.headers().firstValue(MCP_SESSION_ID_HEADER).orElse(sessionId)
 
         if (response.statusCode() !in 200..299) {
-            throw AssertionError("MCP HTTP request failed with status ${response.statusCode()}: ${response.body()}")
+            throw McpHttpStatusException(response.statusCode(), response.body())
         }
 
         val body = response.body().trim()
@@ -138,6 +160,122 @@ class McpHttpClient private constructor(
         }
 
         return parseHttpResponseBody(body)
+    }
+
+    private fun startLegacySseTransport() {
+        if (legacyMessageUri != null) {
+            return
+        }
+
+        val ready = CountDownLatch(1)
+        val request = HttpRequest.newBuilder(baseUri.resolve("/sse"))
+            .timeout(Duration.ofSeconds(30))
+            .header("Accept", "text/event-stream")
+            .header(MCP_PROJECT_PATH_HEADER, projectPath)
+            .GET()
+            .build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofInputStream())
+
+        if (response.statusCode() !in 200..299) {
+            throw McpHttpStatusException(response.statusCode(), String(response.body().readAllBytes(), StandardCharsets.UTF_8))
+        }
+
+        legacyStream = response.body()
+        legacyReaderThread = Thread(
+            {
+                try {
+                    readLegacySseStream(response.body(), ready)
+                } catch (throwable: Throwable) {
+                    legacyReadError.set(throwable)
+                    ready.countDown()
+                }
+            },
+            "mcp-legacy-sse-reader",
+        ).apply {
+            isDaemon = true
+            start()
+        }
+
+        if (!ready.await(10, TimeUnit.SECONDS)) {
+            throw AssertionError("Timed out waiting for MCP legacy SSE endpoint")
+        }
+        legacyReadError.get()?.let { throw AssertionError("MCP legacy SSE reader failed", it) }
+        if (legacyMessageUri == null) {
+            throw AssertionError("MCP legacy SSE stream did not provide a message endpoint")
+        }
+    }
+
+    private fun readLegacySseStream(input: InputStream, ready: CountDownLatch) {
+        val reader = BufferedReader(InputStreamReader(input, StandardCharsets.UTF_8))
+        var event: String? = null
+        val data = StringBuilder()
+
+        while (!Thread.currentThread().isInterrupted) {
+            val line = reader.readLine() ?: break
+            when {
+                line.isEmpty() -> {
+                    handleLegacySseEvent(event, data.toString().trim(), ready)
+                    event = null
+                    data.clear()
+                }
+                line.startsWith("event:") -> event = line.removePrefix("event:").trim()
+                line.startsWith("data:") -> {
+                    if (data.isNotEmpty()) {
+                        data.append('\n')
+                    }
+                    data.append(line.removePrefix("data:").trimStart())
+                }
+            }
+        }
+    }
+
+    private fun handleLegacySseEvent(event: String?, data: String, ready: CountDownLatch) {
+        if (data.isEmpty() || data == "null") {
+            return
+        }
+
+        if (event == "endpoint") {
+            legacyMessageUri = if (data.startsWith("http://") || data.startsWith("https://")) {
+                URI.create(data)
+            } else {
+                baseUri.resolve(data)
+            }
+            ready.countDown()
+            return
+        }
+
+        legacyResponses.add(MCP_JSON.parseToJsonElement(data).jsonObject)
+    }
+
+    private fun sendLegacySse(messageUri: URI, value: JsonObject, expectResponseBody: Boolean): JsonObject {
+        val response = client.send(
+            HttpRequest.newBuilder(messageUri)
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type", "application/json")
+                .header(MCP_PROJECT_PATH_HEADER, projectPath)
+                .POST(HttpRequest.BodyPublishers.ofString(MCP_JSON.encodeToString(JsonObject.serializer(), value)))
+                .build(),
+            HttpResponse.BodyHandlers.ofString(),
+        )
+
+        if (response.statusCode() !in 200..299) {
+            throw McpHttpStatusException(response.statusCode(), response.body())
+        }
+        if (!expectResponseBody) {
+            return EMPTY_PARAMS
+        }
+
+        val expectedId = value["id"]?.jsonPrimitive?.int
+        val deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos()
+        while (System.nanoTime() < deadline) {
+            legacyReadError.get()?.let { throw AssertionError("MCP legacy SSE reader failed", it) }
+            val responseMessage = legacyResponses.poll(250, TimeUnit.MILLISECONDS) ?: continue
+            if (responseMessage["id"]?.jsonPrimitive?.int == expectedId) {
+                return responseMessage
+            }
+        }
+
+        throw AssertionError("Timed out waiting for MCP legacy SSE response id '$expectedId'")
     }
 
     private fun parseHttpResponseBody(body: String): JsonObject {
@@ -158,6 +296,8 @@ class McpHttpClient private constructor(
     }
 
     override fun close() {
+        legacyReaderThread?.interrupt()
+        legacyStream?.close()
         sessionId?.let { id ->
             val request = HttpRequest.newBuilder(streamUri)
                 .timeout(Duration.ofSeconds(10))
@@ -171,9 +311,14 @@ class McpHttpClient private constructor(
 
     companion object {
         fun from(port: Int, projectPath: String): McpHttpClient =
-            McpHttpClient(URI.create("http://127.0.0.1:$port/stream"), projectPath)
+            McpHttpClient(URI.create("http://127.0.0.1:$port"), projectPath)
     }
 }
+
+private class McpHttpStatusException(
+    val statusCode: Int,
+    body: String,
+) : AssertionError("MCP HTTP request failed with status $statusCode: $body")
 
 private fun JsonObject.resultObject(): JsonObject =
     getValue("result").jsonObject
