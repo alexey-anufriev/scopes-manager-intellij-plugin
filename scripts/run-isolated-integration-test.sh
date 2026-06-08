@@ -43,7 +43,6 @@ docker build \
   -t "${image}" \
   "${repo_root}"
 
-rm -rf "${artifacts_dir}"
 mkdir -p "${artifacts_dir}"
 chmod 0777 "${artifacts_dir}"
 

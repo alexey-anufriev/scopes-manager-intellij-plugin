@@ -38,6 +38,16 @@ cd /work
 timeout_value="${INTEGRATION_TEST_TIMEOUT:-30m}"
 artifacts_dir="/artifacts"
 
+clean_test_artifacts() {
+  if [[ ! -d "${artifacts_dir}" ]]; then
+    return
+  fi
+
+  echo "[isolated-test] Cleaning test artifacts in ${artifacts_dir}"
+  find "${artifacts_dir}" -mindepth 1 -exec chmod u+rwX {} + 2>/dev/null || true
+  find "${artifacts_dir}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+}
+
 copy_test_artifacts() {
   if [[ ! -d "${artifacts_dir}" ]]; then
     return
@@ -52,12 +62,15 @@ copy_test_artifacts() {
       rm -rf "${target}"
       mkdir -p "$(dirname "${target}")"
       cp -a "${path}" "${target}"
+      chmod -R a+rwX "${target}"
       echo "[isolated-test] Copied ${path}"
     else
       echo "[isolated-test] No ${path} found"
     fi
   done
 }
+
+clean_test_artifacts
 
 set +e
 timeout --foreground "${timeout_value}" xvfb-run -a ./gradlew "$@" --stacktrace --info --no-daemon --rerun-tasks
