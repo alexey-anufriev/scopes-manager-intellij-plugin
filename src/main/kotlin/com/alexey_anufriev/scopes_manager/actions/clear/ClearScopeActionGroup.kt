@@ -7,7 +7,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.scope.packageSet.NamedScope
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder
-import org.apache.commons.lang.StringUtils
 import org.jetbrains.annotations.NotNull
 import java.util.stream.Stream
 
@@ -38,9 +37,8 @@ class ClearScopeActionGroup : ScopeGroupActionBase() {
     }
 
     private fun isScopeNotEmpty(scope: @NotNull NamedScope): Boolean {
-        return scope.value != null && StringUtils.isNotEmpty(scope.value!!.text)
+        return !scope.value?.text.isNullOrEmpty()
     }
 
 }
-
 

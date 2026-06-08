@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -97,9 +98,10 @@ abstract class ScopeActionBase(
         }
 
         val module = projectManager.fileIndex.getModuleForFile(selectedFile) ?: return
+        val projectRoot = project.guessProjectDir() ?: return
 
         val selectedNode = if (selectedFile.isDirectory) {
-            DirectoryNode(selectedFile, project, false, false, project.baseDir, projectManager.contentRoots)
+            DirectoryNode(selectedFile, project, false, false, projectRoot, projectManager.contentRoots)
         } else {
             FileNode(selectedFile, project, false)
         }
@@ -114,10 +116,10 @@ abstract class ScopeActionBase(
 
         // [start] support Rider
         if (selectedContent == null) {
-            var filePattern = VfsUtilCore.getRelativePath(selectedFile, project.baseDir, '/')
+            var filePattern = VfsUtilCore.getRelativePath(selectedFile, projectRoot, '/')
             if (filePattern != null) {
                 if (selectedFile.isDirectory) {
-                    filePattern += "/*";
+                    filePattern += "/*"
                 }
                 selectedContent = FilePatternPackageSet(null, filePattern)
             }

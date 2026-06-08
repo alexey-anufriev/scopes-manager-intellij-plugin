@@ -1,6 +1,7 @@
 package com.alexey_anufriev.scopes_manager.utils
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -42,7 +43,9 @@ object PackageSetUtils {
     }
 
     fun contains(project: Project, packageSet: PackageSetBase, file: VirtualFile): Boolean {
-        if (VfsUtilCore.isAncestor(project.baseDir, file, false)) {
+        val projectRoot = project.guessProjectDir()
+
+        if (projectRoot != null && VfsUtilCore.isAncestor(projectRoot, file, false)) {
             return packageSet.contains(file, project, null)
         }
         // external file (linked module)
