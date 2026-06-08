@@ -2,6 +2,9 @@ name: Release Plugin
 
 on: [workflow_dispatch]
 
+permissions:
+  contents: write
+
 concurrency:
   group: release-plugin
   cancel-in-progress: false
@@ -37,9 +40,10 @@ jobs:
       id: properties
       shell: bash
       run: |
+        set -euo pipefail
         PROPERTIES="$(./gradlew properties --console=plain -q)"
         VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-        echo "version=$(echo $VERSION)" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
     - name: Download Plugin Archive
       uses: actions/download-artifact@v8
@@ -51,11 +55,19 @@ jobs:
       id: artifact
       shell: bash
       run: |
-        cd ${{ github.workspace }}/build/distributions
-        FILENAME=`ls *.zip`
-        CUT_FILENAME=${FILENAME:0:-4}
-        echo "filename=$(echo $CUT_FILENAME)" >> $GITHUB_OUTPUT
-        echo "archive_path=${{ github.workspace }}/build/distributions/$FILENAME" >> $GITHUB_OUTPUT
+        set -euo pipefail
+        cd "${{ github.workspace }}/build/distributions"
+
+        mapfile -t archives < <(find . -maxdepth 1 -type f -name '*.zip' -printf '%f\n' | sort)
+        if [ "${#archives[@]}" -ne 1 ]; then
+          echo "Expected exactly one plugin archive, found ${#archives[@]}:" >&2
+          printf '%s\n' "${archives[@]}" >&2
+          exit 1
+        fi
+
+        filename="${archives[0]}"
+        echo "filename=${filename%.zip}" >> "$GITHUB_OUTPUT"
+        echo "archive_path=${{ github.workspace }}/build/distributions/$filename" >> "$GITHUB_OUTPUT"
       
     - name: Upload artifact
       uses: actions/upload-artifact@v7
@@ -75,3 +87,4 @@ jobs:
         name: v${{ steps.properties.outputs.version }}
         draft: false
         prerelease: false
+        files: ${{ steps.artifact.outputs.archive_path }}

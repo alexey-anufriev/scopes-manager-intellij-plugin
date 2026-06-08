@@ -11,4 +11,4 @@ jobs:
     uses: ./.github/workflows/reusable-verify.yml
     with:
       artifact_prefix: nightly-eap
-      matrix_targets: unit-tests,plugin-verifier,eap-ui
+      matrix_targets: unit-tests,plugin-verifier,eap-integration

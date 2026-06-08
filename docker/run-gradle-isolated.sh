@@ -36,5 +36,33 @@ rsync -a --delete \
 cd /work
 
 timeout_value="${INTEGRATION_TEST_TIMEOUT:-30m}"
+artifacts_dir="/artifacts"
 
-exec timeout --foreground "${timeout_value}" xvfb-run -a ./gradlew "$@" --stacktrace --info --no-daemon --rerun-tasks
+copy_test_artifacts() {
+  if [[ ! -d "${artifacts_dir}" ]]; then
+    return
+  fi
+
+  echo "[isolated-test] Copying test artifacts to ${artifacts_dir}"
+  mkdir -p "${artifacts_dir}"
+
+  for path in build/test-results build/reports/tests out/ide-tests/tests; do
+    if [[ -e "${path}" ]]; then
+      target="${artifacts_dir}/${path}"
+      rm -rf "${target}"
+      mkdir -p "$(dirname "${target}")"
+      cp -a "${path}" "${target}"
+      echo "[isolated-test] Copied ${path}"
+    else
+      echo "[isolated-test] No ${path} found"
+    fi
+  done
+}
+
+set +e
+timeout --foreground "${timeout_value}" xvfb-run -a ./gradlew "$@" --stacktrace --info --no-daemon --rerun-tasks
+status=$?
+set -e
+
+copy_test_artifacts
+exit "${status}"

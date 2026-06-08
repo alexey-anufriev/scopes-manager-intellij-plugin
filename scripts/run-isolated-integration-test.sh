@@ -36,16 +36,26 @@ fi
 
 image="${INTEGRATION_TEST_IMAGE:-scopes-manager-integration-tests:latest}"
 timeout_value="${INTEGRATION_TEST_TIMEOUT:-30m}"
+artifacts_dir="${repo_root}/.ci/container-test-results"
 
 docker build \
   -f "${repo_root}/docker/integration-tests.Dockerfile" \
   -t "${image}" \
   "${repo_root}"
 
+rm -rf "${artifacts_dir}"
+mkdir -p "${artifacts_dir}"
+chmod 0777 "${artifacts_dir}"
+
+docker_args=(
+  --rm
+  --init
+  -e "INTEGRATION_TEST_TIMEOUT=${timeout_value}"
+  -v "${repo_root}:/source:ro"
+  -v "${artifacts_dir}:/artifacts"
+)
+
 exec docker run \
-  --rm \
-  --init \
-  -e "INTEGRATION_TEST_TIMEOUT=${timeout_value}" \
-  -v "${repo_root}:/source:ro" \
+  "${docker_args[@]}" \
   "${image}" \
   "$@"

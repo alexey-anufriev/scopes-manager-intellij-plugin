@@ -25,24 +25,24 @@ jobs:
       run: |
         ALL_MATRIX='[
           {"name":"unit-tests","command":"./gradlew test","artifact_suffix":"unit-tests","containerized":false},
-          {"name":"plugin-verifier","command":"./gradlew verifyPlugin -Pplugin.verifier.home.dir=~/.pluginVerifier","artifact_suffix":"plugin-verifier","containerized":false},
-          {"name":"legacy-ui-idea-2025-3","command":"./gradlew integrationTest2025_3 --stacktrace --info --no-daemon","artifact_suffix":"legacy-ui-idea-2025-3","containerized":true,"groups":["legacy-ui","ui"]},
-          {"name":"stable-ui-idea","command":"./gradlew integrationTestIdeaLatestRelease --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-idea","containerized":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-clion","command":"./gradlew integrationTestCLionLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-clion","containerized":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-goland","command":"./gradlew integrationTestGoLandLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-goland","containerized":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-pycharm","command":"./gradlew integrationTestPyCharmLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-pycharm","containerized":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-rider","command":"./gradlew integrationTestRiderLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rider","containerized":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-rubymine","command":"./gradlew integrationTestRubyMineLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rubymine","containerized":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-rustrover","command":"./gradlew integrationTestRustRoverLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-rustrover","containerized":true,"groups":["stable-ui","ui"]},
-          {"name":"stable-ui-webstorm","command":"./gradlew integrationTestWebStormLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-ui-webstorm","containerized":true,"groups":["stable-ui","ui"]},
-          {"name":"eap-ui-idea","command":"./gradlew integrationTestIdeaLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-idea","containerized":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-clion","command":"./gradlew integrationTestCLionLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-clion","containerized":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-goland","command":"./gradlew integrationTestGoLandLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-goland","containerized":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-pycharm","command":"./gradlew integrationTestPyCharmLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-pycharm","containerized":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-rider","command":"./gradlew integrationTestRiderLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rider","containerized":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-rubymine","command":"./gradlew integrationTestRubyMineLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rubymine","containerized":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-rustrover","command":"./gradlew integrationTestRustRoverLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-rustrover","containerized":true,"groups":["eap-ui","ui"]},
-          {"name":"eap-ui-webstorm","command":"./gradlew integrationTestWebStormLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-ui-webstorm","containerized":true,"groups":["eap-ui","ui"]}
+          {"name":"plugin-verifier","command":"./gradlew verifyPlugin","artifact_suffix":"plugin-verifier","containerized":false},
+          {"name":"legacy-integration-idea-2025-3","command":"./gradlew integrationTest2025_3 --stacktrace --info --no-daemon","artifact_suffix":"legacy-integration-idea-2025-3","containerized":true,"groups":["legacy-integration","integration"]},
+          {"name":"stable-integration-idea","command":"./gradlew integrationTestIdeaLatestRelease --stacktrace --info --no-daemon","artifact_suffix":"stable-integration-idea","containerized":true,"groups":["stable-integration","integration"]},
+          {"name":"stable-integration-clion","command":"./gradlew integrationTestCLionLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-integration-clion","containerized":true,"groups":["stable-integration","integration"]},
+          {"name":"stable-integration-goland","command":"./gradlew integrationTestGoLandLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-integration-goland","containerized":true,"groups":["stable-integration","integration"]},
+          {"name":"stable-integration-pycharm","command":"./gradlew integrationTestPyCharmLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-integration-pycharm","containerized":true,"groups":["stable-integration","integration"]},
+          {"name":"stable-integration-rider","command":"./gradlew integrationTestRiderLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-integration-rider","containerized":true,"groups":["stable-integration","integration"]},
+          {"name":"stable-integration-rubymine","command":"./gradlew integrationTestRubyMineLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-integration-rubymine","containerized":true,"groups":["stable-integration","integration"]},
+          {"name":"stable-integration-rustrover","command":"./gradlew integrationTestRustRoverLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-integration-rustrover","containerized":true,"groups":["stable-integration","integration"]},
+          {"name":"stable-integration-webstorm","command":"./gradlew integrationTestWebStormLatest --stacktrace --info --no-daemon","artifact_suffix":"stable-integration-webstorm","containerized":true,"groups":["stable-integration","integration"]},
+          {"name":"eap-integration-idea","command":"./gradlew integrationTestIdeaLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-integration-idea","containerized":true,"groups":["eap-integration","integration"]},
+          {"name":"eap-integration-clion","command":"./gradlew integrationTestCLionLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-integration-clion","containerized":true,"groups":["eap-integration","integration"]},
+          {"name":"eap-integration-goland","command":"./gradlew integrationTestGoLandLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-integration-goland","containerized":true,"groups":["eap-integration","integration"]},
+          {"name":"eap-integration-pycharm","command":"./gradlew integrationTestPyCharmLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-integration-pycharm","containerized":true,"groups":["eap-integration","integration"]},
+          {"name":"eap-integration-rider","command":"./gradlew integrationTestRiderLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-integration-rider","containerized":true,"groups":["eap-integration","integration"]},
+          {"name":"eap-integration-rubymine","command":"./gradlew integrationTestRubyMineLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-integration-rubymine","containerized":true,"groups":["eap-integration","integration"]},
+          {"name":"eap-integration-rustrover","command":"./gradlew integrationTestRustRoverLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-integration-rustrover","containerized":true,"groups":["eap-integration","integration"]},
+          {"name":"eap-integration-webstorm","command":"./gradlew integrationTestWebStormLatestEap --stacktrace --info --no-daemon","artifact_suffix":"eap-integration-webstorm","containerized":true,"groups":["eap-integration","integration"]}
         ]'
 
         if [ "${{ inputs.matrix_targets }}" = "full" ]; then
@@ -187,8 +187,9 @@ jobs:
         echo "matrix_containerized=${{ matrix.containerized }}"
         echo "built_plugin_dir_container=${BUILT_PLUGIN_DIR_CONTAINER:-}"
 
-        cmd=(${{ matrix.command }})
+        read -r -a cmd <<< "${{ matrix.command }}"
         if [ "${{ matrix.name }}" = "plugin-verifier" ]; then
+          cmd+=("-Pplugin.verifier.home.dir=$HOME/.pluginVerifier")
           cmd+=("-PbuiltPluginArchive=$BUILT_PLUGIN_ARCHIVE")
         fi
         if [ "${{ matrix.containerized }}" = "true" ]; then
@@ -197,7 +198,8 @@ jobs:
 
         echo "resolved_command=${cmd[*]}"
 
-        LOG_FILE="$RUNNER_TEMP/verify-command-${{ matrix.name }}.log"
+        mkdir -p "$GITHUB_WORKSPACE/.ci/verify-logs"
+        LOG_FILE="$GITHUB_WORKSPACE/.ci/verify-logs/${{ matrix.artifact_suffix }}.log"
         : > "$LOG_FILE"
 
         run_verification_command() {
@@ -251,4 +253,6 @@ jobs:
           build/test-results/
           build/reports/tests/
           out/ide-tests/tests/
+          .ci/container-test-results/
+          .ci/verify-logs/${{ matrix.artifact_suffix }}.log
         if-no-files-found: warn
