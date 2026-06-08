@@ -50,6 +50,7 @@ class McpHttpClient private constructor(
     private val legacyReadError = AtomicReference<Throwable?>()
 
     fun initialize() {
+        logMcpCheckpoint("Initializing")
         val params = buildJsonObject {
             put("protocolVersion", "2024-11-05")
             putJsonObject("capabilities") {}
@@ -64,13 +65,16 @@ class McpHttpClient private constructor(
             if (error.statusCode != 404) {
                 throw error
             }
+            logMcpCheckpoint("Switching to legacy SSE transport")
             startLegacySseTransport()
             request("initialize", params)
         }
         notification("notifications/initialized")
+        logMcpCheckpoint("Initialized")
     }
 
     fun listToolNames(): List<String> {
+        logMcpCheckpoint("Listing tools")
         val response = request("tools/list")
         return response.resultObject()
             .getValue("tools")
@@ -79,6 +83,7 @@ class McpHttpClient private constructor(
     }
 
     fun callTextTool(name: String, arguments: Map<String, String> = emptyMap()): String {
+        logMcpCheckpoint("Calling tool '$name'")
         val response = request(
             "tools/call",
             buildJsonObject {
@@ -99,6 +104,7 @@ class McpHttpClient private constructor(
 
     private fun request(method: String, params: JsonObject = EMPTY_PARAMS): JsonObject {
         val id = nextId++
+        logMcpCheckpoint("Request '$method' started")
         val response = send(
             buildJsonObject {
                 put("jsonrpc", "2.0")
@@ -113,10 +119,12 @@ class McpHttpClient private constructor(
             throw AssertionError("MCP HTTP request '$method' returned response id '$responseId' instead of '$id': $response")
         }
         response["error"]?.let { throw AssertionError("MCP HTTP request '$method' failed: $it") }
+        logMcpCheckpoint("Request '$method' succeeded")
         return response
     }
 
     private fun notification(method: String, params: JsonObject = EMPTY_PARAMS) {
+        logMcpCheckpoint("Notification '$method' started")
         send(
             buildJsonObject {
                 put("jsonrpc", "2.0")
@@ -167,6 +175,7 @@ class McpHttpClient private constructor(
             return
         }
 
+        logMcpCheckpoint("Opening legacy SSE stream")
         val ready = CountDownLatch(1)
         val request = HttpRequest.newBuilder(baseUri.resolve("/sse"))
             .timeout(Duration.ofSeconds(30))
@@ -203,6 +212,7 @@ class McpHttpClient private constructor(
         if (legacyMessageUri == null) {
             throw AssertionError("MCP legacy SSE stream did not provide a message endpoint")
         }
+        logMcpCheckpoint("Legacy SSE stream ready")
     }
 
     private fun readLegacySseStream(input: InputStream, ready: CountDownLatch) {
@@ -296,6 +306,7 @@ class McpHttpClient private constructor(
     }
 
     override fun close() {
+        logMcpCheckpoint("Closing")
         legacyReaderThread?.interrupt()
         legacyStream?.close()
         sessionId?.let { id ->
@@ -307,6 +318,10 @@ class McpHttpClient private constructor(
                 .build()
             client.send(request, HttpResponse.BodyHandlers.discarding())
         }
+    }
+
+    private fun logMcpCheckpoint(message: String) {
+        println("[integration-test:mcp] $message")
     }
 
     companion object {

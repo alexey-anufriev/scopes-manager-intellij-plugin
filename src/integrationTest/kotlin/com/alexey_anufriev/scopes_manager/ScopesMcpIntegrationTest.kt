@@ -53,12 +53,14 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
 
     @Test
     fun mcpClientCanListAndCallScopeTools() {
+        logTestCheckpoint("MCP integration test started")
         val config = readConfig()
 
         try {
             runUiTest { uiConfig ->
                 handleLicenseDialogIfShown()
                 waitForUiReady(uiConfig.productCode, uiConfig.toolWindowId)
+                logTestCheckpoint("Checking MCP plugin")
                 assertMcpServerPluginEnabled()
 
                 withTemporaryLocalScopes(
@@ -67,18 +69,23 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
                     newEmptyLocalScope("MCP Empty"),
                 ) {
                     val server = service<McpServerServiceRef>()
+                    logTestCheckpoint("Starting MCP server")
                     server.start()
                     try {
+                        logTestCheckpoint("Creating MCP client")
                         McpHttpClient.from(
                             port = server.getPort(),
                             projectPath = uiConfig.projectHome.toAbsolutePath().toString(),
                         ).use { client ->
+                            logTestCheckpoint("Initializing MCP client")
                             client.initialize()
 
+                            logTestCheckpoint("Listing MCP tools")
                             val toolNames = client.listToolNames()
                             assertTrue(toolNames.contains("get_scopes"), "MCP tools did not include get_scopes: $toolNames")
                             assertTrue(toolNames.contains("get_scope_files"), "MCP tools did not include get_scope_files: $toolNames")
 
+                            logTestCheckpoint("Calling MCP scope tools")
                             assertEquals(
                                 listOf("MCP Empty", "MCP Non Recursive", "MCP Recursive").joinToString("\n"),
                                 client.callTextTool("get_scopes"),
@@ -97,6 +104,7 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
                             )
                         }
                     } finally {
+                        logTestCheckpoint("Stopping MCP server")
                         server.stop()
                         waitForMcpServerStopped(server)
                     }
@@ -142,14 +150,18 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
         val localScopesManager = service<NamedScopeManagerRef>(project)
 
         try {
+            logTestCheckpoint("Installing temporary MCP scopes")
             withWriteAction {
                 localScopesManager.setScopes(scopes.toList().toTypedArray())
             }
+            logTestCheckpoint("Temporary MCP scopes installed")
             body()
         } finally {
+            logTestCheckpoint("Removing temporary MCP scopes")
             withWriteAction {
                 localScopesManager.removeAllSets()
             }
+            logTestCheckpoint("Temporary MCP scopes removed")
         }
     }
 
