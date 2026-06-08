@@ -29,14 +29,14 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-abstract class UiIntegrationTestSupport {
+abstract class IdeIntegrationTestSupport {
 
     @Remote("com.intellij.openapi.project.DumbService")
     interface DumbServiceRef {
         fun isDumb(): Boolean
     }
 
-    protected data class UiTestConfig(
+    protected data class IdeTestConfig(
         val productCode: String,
         val ideVersion: String?,
         val ideChannel: String,
@@ -55,9 +55,11 @@ abstract class UiIntegrationTestSupport {
         }
     }
 
-    protected fun runUiTest(assertion: Driver.(UiTestConfig) -> Unit) {
+    protected fun runIdeIntegrationTest(assertion: Driver.(IdeTestConfig) -> Unit) {
         val config = readConfig()
-        logTestCheckpoint("UI test config read: ${config.testNameSuffix}")
+        val testName = "${testContextName()}-${config.testNameSuffix}"
+        logTestCheckpoint("Test '$testName' started")
+        logTestCheckpoint("IDE test config read: ${config.testNameSuffix}")
         val testCase = TestCase(
             ideProduct(config.productCode),
             LocalProjectInfo(config.projectHome)
@@ -71,7 +73,7 @@ abstract class UiIntegrationTestSupport {
         logTestCheckpoint("IDE version selected")
 
         val context = Starter.newContext(
-            "${testContextName()}-${config.testNameSuffix}",
+            testName,
             ideUnderTest
         ).apply {
             logTestCheckpoint("Adding trusted project location")
@@ -87,21 +89,22 @@ abstract class UiIntegrationTestSupport {
             logTestCheckpoint("Test assertions finished")
         }
         logTestCheckpoint("IDE closed")
+        logTestCheckpoint("Test '$testName' successful")
     }
 
-    protected fun skipUnavailableEap(config: UiTestConfig, throwable: Throwable) {
+    protected fun skipUnavailableEap(config: IdeTestConfig, throwable: Throwable) {
         if (isUnavailableEap(config, throwable)) {
-            assumeTrue(false, "Skipping EAP UI test for ${config.testNameSuffix}: JetBrains EAP build is currently unavailable or expired. Original error: ${throwable.message.orEmpty()}")
+            assumeTrue(false, "Skipping EAP IDE test for ${config.testNameSuffix}: JetBrains EAP build is currently unavailable or expired. Original error: ${throwable.message.orEmpty()}")
         }
     }
 
-    protected fun readConfig(): UiTestConfig {
+    protected fun readConfig(): IdeTestConfig {
         val projectPath = System.getProperty(
             "uiTestProjectPath",
             "src/integrationTest/resources/test-projects/idea-project"
         )
 
-        return UiTestConfig(
+        return IdeTestConfig(
             productCode = System.getProperty("uiTestProductCode", "IC"),
             ideVersion = System.getProperty("uiTestIdeVersion"),
             ideChannel = System.getProperty("uiTestIdeChannel", "release"),
@@ -182,7 +185,7 @@ abstract class UiIntegrationTestSupport {
 
     protected open fun testContextName(): String = "scopes-manager-ui"
 
-    private fun isUnavailableEap(config: UiTestConfig, throwable: Throwable): Boolean {
+    private fun isUnavailableEap(config: IdeTestConfig, throwable: Throwable): Boolean {
         if (config.ideChannel != "eap") {
             return false
         }

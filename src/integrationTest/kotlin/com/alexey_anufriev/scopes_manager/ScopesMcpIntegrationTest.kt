@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
+class ScopesMcpIntegrationTest : IdeIntegrationTestSupport() {
 
     @Remote("com.intellij.openapi.extensions.PluginId")
     interface PluginIdRef
@@ -57,9 +57,9 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
         val config = readConfig()
 
         try {
-            runUiTest { uiConfig ->
+            runIdeIntegrationTest { ideConfig ->
                 handleLicenseDialogIfShown()
-                waitForUiReady(uiConfig.productCode, uiConfig.toolWindowId)
+                waitForUiReady(ideConfig.productCode, ideConfig.toolWindowId)
                 logTestCheckpoint("Checking MCP plugin")
                 assertMcpServerPluginEnabled()
 
@@ -75,7 +75,7 @@ class ScopesMcpIntegrationTest : UiIntegrationTestSupport() {
                         logTestCheckpoint("Creating MCP client")
                         McpHttpClient.from(
                             port = server.getPort(),
-                            projectPath = uiConfig.projectHome.toAbsolutePath().toString(),
+                            projectPath = ideConfig.projectHome.toAbsolutePath().toString(),
                         ).use { client ->
                             logTestCheckpoint("Initializing MCP client")
                             client.initialize()

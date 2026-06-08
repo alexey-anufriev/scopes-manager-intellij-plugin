@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-class SwitchScopeUiTest : UiIntegrationTestSupport() {
+class SwitchScopeUiTest : IdeIntegrationTestSupport() {
 
     @Remote("com.intellij.psi.search.scope.packageSet.NamedScope")
     interface NamedScopeRef
@@ -46,7 +46,7 @@ class SwitchScopeUiTest : UiIntegrationTestSupport() {
         assumeTrue(config.productCode != "RD", "IDE ${config.testNameSuffix} does not provide IntelliJ Scope View")
 
         try {
-            runUiTest { uiConfig ->
+            runIdeIntegrationTest { uiConfig ->
                 handleLicenseDialogIfShown()
                 waitForUiReady(uiConfig.productCode, uiConfig.toolWindowId)
 

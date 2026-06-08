@@ -12,12 +12,12 @@ import java.awt.event.KeyEvent
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-class ScopesManagerUiTest : UiIntegrationTestSupport() {
+class ScopesManagerUiTest : IdeIntegrationTestSupport() {
 
     @Test
     fun pluginStartsWithoutUiErrorsOnProjectOpen() {
         try {
-            runUiTest { config ->
+            runIdeIntegrationTest { config ->
                 handleLicenseDialogIfShown()
                 waitForUiReady(config.productCode, config.toolWindowId)
                 verifyProductBehavior(config)
@@ -29,7 +29,7 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         }
     }
 
-    private fun Driver.verifyProductBehavior(config: UiTestConfig) {
+    private fun Driver.verifyProductBehavior(config: IdeTestConfig) {
         if (config.productCode == "RD") {
             verifyRiderProjectView(config)
             return
@@ -38,7 +38,7 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         verifyAddToScopeAction(config)
     }
 
-    private fun Driver.verifyRiderProjectView(config: UiTestConfig) {
+    private fun Driver.verifyRiderProjectView(config: IdeTestConfig) {
         ideFrame {
             projectView {
                 selectSampleFile(config.sampleFileNames, config.samplePath)
@@ -46,7 +46,7 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         }
     }
 
-    private fun Driver.verifyAddToScopeAction(config: UiTestConfig) {
+    private fun Driver.verifyAddToScopeAction(config: IdeTestConfig) {
         try {
             openAddToScopeMenu(config)
             return
@@ -59,7 +59,7 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         }
     }
 
-    private fun Driver.openAddToScopePopupWithShortcut(config: UiTestConfig): Boolean {
+    private fun Driver.openAddToScopePopupWithShortcut(config: IdeTestConfig): Boolean {
         ideFrame {
             projectView {
                 selectSampleFile(config.sampleFileNames, config.samplePath)
@@ -78,7 +78,7 @@ class ScopesManagerUiTest : UiIntegrationTestSupport() {
         return false
     }
 
-    private fun Driver.openAddToScopeMenu(config: UiTestConfig, timeout: Duration = 30.seconds) {
+    private fun Driver.openAddToScopeMenu(config: IdeTestConfig, timeout: Duration = 30.seconds) {
         val deadline = System.nanoTime() + timeout.inWholeNanoseconds
         var lastPopupItems = emptyList<String>()
         var lastError: Throwable? = null
