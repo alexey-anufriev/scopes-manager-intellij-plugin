@@ -176,6 +176,15 @@ jobs:
         echo "extracted_plugin_contents:"
         find "$BUILT_PLUGIN_DIR" -maxdepth 2 -print | sort
 
+    - name: Free Runner Disk Space
+      if: ${{ matrix.containerized == true }}
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
+
+    - name: Check Disk Space
+      run: df -h
+
     - name: Run Verification Task
       shell: bash
       run: |
