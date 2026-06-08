@@ -16,6 +16,10 @@
         Any file or folder can be assigned to a scope (or unassigned) right from the tree view.
         <br/>
         <br/>
+        When the bundled MCP Server plugin is enabled, Scopes Manager exposes
+        <code>get_scopes</code> and <code>get_scope_files</code> tools so AI assistants can inspect scope definitions.
+        <br/>
+        <br/>
 
         Shortcuts:
         <br/>
@@ -88,7 +92,7 @@
         This release targets the newer MCP Server API (bundled MCP Server API was unstable across the 252.* line).
         <br/>
         Adds MCP Server integration. When the bundled MCP Server plugin is enabled, Scopes Manager exposes
-        two tools to MCP clients: <pre>get_scopes</pre> and <pre>get_scope_files</pre>. Lets AI assistants reason about your scope definitions.
+        two tools to MCP clients: <code>get_scopes</code> and <code>get_scope_files</code>. Lets AI assistants reason about your scope definitions.
         <br/>
         <br/>
         1.15.1: Internal improvements
