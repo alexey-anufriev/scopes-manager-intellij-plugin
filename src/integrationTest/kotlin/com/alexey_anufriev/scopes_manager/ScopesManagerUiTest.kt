@@ -15,11 +15,6 @@ import kotlin.time.Duration.Companion.seconds
 class ScopesManagerUiTest : IdeIntegrationTestSupport() {
 
     @Test
-    fun brokenTest() {
-        throw RuntimeException("Intentionally broken test")
-    }
-
-    @Test
     fun pluginStartsWithoutUiErrorsOnProjectOpen() {
         logTestCheckpoint("Scopes manager UI test started")
         try {
