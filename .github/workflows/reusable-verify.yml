@@ -119,6 +119,12 @@ jobs:
     - name: Gradle Wrapper Validation
       uses: gradle/actions/wrapper-validation@v6
 
+    - name: Free Runner Disk Space
+      if: ${{ matrix.containerized == true || matrix.name == 'plugin-verifier' }}
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
+
     - name: Setup Java
       uses: actions/setup-java@v5.6.0
       with:
@@ -175,12 +181,6 @@ jobs:
         echo "built_plugin_dir_container=.ci/extracted-plugin/$(basename "$BUILT_PLUGIN_DIR")"
         echo "extracted_plugin_contents:"
         find "$BUILT_PLUGIN_DIR" -maxdepth 2 -print | sort
-
-    - name: Free Runner Disk Space
-      if: ${{ matrix.containerized == true }}
-      uses: jlumbroso/free-disk-space@v1.3.1
-      with:
-        tool-cache: true
 
     - name: Check Disk Space
       run: df -h
