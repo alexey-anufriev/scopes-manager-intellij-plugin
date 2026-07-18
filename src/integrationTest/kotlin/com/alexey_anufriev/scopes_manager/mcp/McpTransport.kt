@@ -1,4 +1,4 @@
-package com.alexey_anufriev.scopes_manager
+package com.alexey_anufriev.scopes_manager.mcp
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -25,10 +25,13 @@ internal const val MCP_PROJECT_PATH_HEADER = "IJ_MCP_SERVER_PROJECT_PATH"
 internal val MCP_JSON = Json { ignoreUnknownKeys = true }
 internal val EMPTY_MCP_PARAMS: JsonObject = buildJsonObject {}
 
+/** Exchanges JSON-RPC messages with an MCP server. */
 internal interface McpTransport : Closeable {
+    /** Sends [value] and returns its JSON response when one is expected. */
     fun send(value: JsonObject, expectResponseBody: Boolean = true): JsonObject
 }
 
+/** Implements the current MCP streamable HTTP transport. */
 internal class StreamableHttpTransport(
     private val baseUri: URI,
     private val projectPath: String,
@@ -93,6 +96,7 @@ internal class StreamableHttpTransport(
     }
 }
 
+/** Implements the legacy MCP server-sent-events transport. */
 internal class LegacySseTransport(
     private val baseUri: URI,
     private val projectPath: String,
@@ -221,6 +225,7 @@ internal class LegacySseTransport(
     }
 }
 
+/** Reports a non-successful response returned by an MCP HTTP endpoint. */
 internal class McpHttpStatusException(
     val statusCode: Int,
     body: String,

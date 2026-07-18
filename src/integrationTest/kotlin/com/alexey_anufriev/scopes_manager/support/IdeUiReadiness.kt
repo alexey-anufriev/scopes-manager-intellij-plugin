@@ -1,4 +1,4 @@
-package com.alexey_anufriev.scopes_manager
+package com.alexey_anufriev.scopes_manager.support
 
 import com.intellij.driver.client.Driver
 import com.intellij.driver.client.Remote
@@ -16,10 +16,12 @@ private interface DumbServiceRef {
     fun isDumb(): Boolean
 }
 
+/** Waits for product-specific IDE startup work before UI assertions begin. */
 internal class IdeUiReadiness(
     private val driver: Driver,
     private val log: (String) -> Unit,
 ) {
+    /** Waits until the configured IDE is ready for UI interaction. */
     fun waitUntilReady(config: IdeTestConfig) {
         log("Waiting for UI readiness")
         when (config.product) {

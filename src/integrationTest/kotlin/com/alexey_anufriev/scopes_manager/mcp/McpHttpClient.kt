@@ -1,4 +1,4 @@
-package com.alexey_anufriev.scopes_manager
+package com.alexey_anufriev.scopes_manager.mcp
 
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
@@ -12,6 +12,7 @@ import kotlinx.serialization.json.putJsonObject
 import java.io.Closeable
 import java.net.URI
 
+/** Minimal JSON-RPC client used to exercise the IDE's MCP server. */
 internal class McpHttpClient private constructor(
     private val baseUri: URI,
     private val projectPath: String,
@@ -19,6 +20,7 @@ internal class McpHttpClient private constructor(
     private var nextId = 1
     private var transport: McpTransport = StreamableHttpTransport(baseUri, projectPath)
 
+    /** Initializes the MCP session and falls back to legacy SSE when necessary. */
     fun initialize() {
         log("Initializing")
         val params = buildJsonObject {
@@ -42,6 +44,7 @@ internal class McpHttpClient private constructor(
         log("Initialized")
     }
 
+    /** Returns the names of tools advertised by the MCP server. */
     fun listToolNames(): List<String> {
         log("Listing tools")
         return request("tools/list")
@@ -51,6 +54,7 @@ internal class McpHttpClient private constructor(
             .map { it.jsonObject.getValue("name").jsonPrimitive.content }
     }
 
+    /** Calls a text-producing MCP tool and joins its returned text content. */
     fun callTextTool(name: String, arguments: Map<String, String> = emptyMap()): String {
         log("Calling tool '$name'")
         val result = request(
@@ -113,6 +117,7 @@ internal class McpHttpClient private constructor(
     }
 
     companion object {
+        /** Creates a client for the local MCP server listening on [port]. */
         fun from(port: Int, projectPath: String): McpHttpClient =
             McpHttpClient(URI.create("http://127.0.0.1:$port"), projectPath)
     }

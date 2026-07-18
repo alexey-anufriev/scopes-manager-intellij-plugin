@@ -1,5 +1,7 @@
-package com.alexey_anufriev.scopes_manager
+package com.alexey_anufriev.scopes_manager.fixture
 
+import com.alexey_anufriev.scopes_manager.mcp.McpHttpClient
+import com.alexey_anufriev.scopes_manager.support.waitUntil
 import com.intellij.driver.client.Driver
 import com.intellij.driver.client.Remote
 import com.intellij.driver.client.service
@@ -32,6 +34,7 @@ private interface McpServerServiceRef {
     fun getPort(): Int
 }
 
+/** Runs [body] with a client connected to a temporary IDE MCP server. */
 internal fun Driver.withMcpClient(
     projectPath: String,
     body: McpHttpClient.() -> Unit,

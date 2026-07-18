@@ -1,5 +1,6 @@
-package com.alexey_anufriev.scopes_manager
+package com.alexey_anufriev.scopes_manager.driver
 
+import com.alexey_anufriev.scopes_manager.support.pollUntil
 import com.intellij.driver.client.Driver
 import com.intellij.driver.model.TreePathToRow
 import com.intellij.driver.sdk.ui.components.common.ideFrame
@@ -8,10 +9,12 @@ import com.intellij.driver.sdk.ui.components.common.toolwindows.projectView
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+/** Encapsulates Project tool-window navigation used by integration tests. */
 internal class ProjectViewDriver(
     private val driver: Driver,
     private val log: (String) -> Unit = ::logProjectViewCheckpoint,
 ) {
+    /** Selects the configured sample file in the Project tree. */
     fun selectSampleFile(sampleFileNames: Set<String>, samplePath: List<String>) {
         driver.ideFrame {
             projectView {
@@ -20,6 +23,7 @@ internal class ProjectViewDriver(
         }
     }
 
+    /** Opens the context menu for the configured sample file. */
     fun openSampleFileContextMenu(sampleFileNames: Set<String>, samplePath: List<String>) {
         driver.ideFrame {
             projectView {
@@ -28,6 +32,7 @@ internal class ProjectViewDriver(
         }
     }
 
+    /** Moves keyboard focus to the Project tree. */
     fun focus() {
         driver.ideFrame {
             projectView {
@@ -153,6 +158,7 @@ internal class ProjectViewDriver(
     }
 }
 
+/** Creates a Project View driver bound to this IDE driver. */
 internal fun Driver.projectViewDriver(): ProjectViewDriver = ProjectViewDriver(this)
 
 private fun logProjectViewCheckpoint(message: String) {

@@ -1,5 +1,6 @@
-package com.alexey_anufriev.scopes_manager
+package com.alexey_anufriev.scopes_manager.driver
 
+import com.alexey_anufriev.scopes_manager.support.pollUntil
 import com.intellij.driver.client.Driver
 import com.intellij.driver.client.Remote
 import com.intellij.driver.client.service
@@ -23,8 +24,10 @@ private interface ProjectViewPaneRef {
     fun getPresentableSubIdName(subId: String): String
 }
 
+/** Reads and verifies the current state of the IDE's Scope view. */
 internal class ScopeViewDriver(private val driver: Driver) {
 
+    /** Waits until all [scopeNames] are visible in the Scope view. */
     fun waitUntilContains(vararg scopeNames: String, timeout: Duration = 15.seconds) {
         val expectedScopeNames = scopeNames.toList()
         waitUntil(
@@ -36,6 +39,7 @@ internal class ScopeViewDriver(private val driver: Driver) {
         )
     }
 
+    /** Waits until [scopeName] is the selected Project View scope. */
     fun waitUntilSelected(scopeName: String, timeout: Duration = 15.seconds) {
         waitUntil(
             timeout = timeout,
@@ -100,4 +104,5 @@ internal class ScopeViewDriver(private val driver: Driver) {
     }
 }
 
+/** Creates a Scope View driver bound to this IDE driver. */
 internal fun Driver.scopeViewDriver(): ScopeViewDriver = ScopeViewDriver(this)

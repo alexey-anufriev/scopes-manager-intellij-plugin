@@ -1,5 +1,6 @@
-package com.alexey_anufriev.scopes_manager
+package com.alexey_anufriev.scopes_manager.driver
 
+import com.alexey_anufriev.scopes_manager.support.pollUntil
 import com.intellij.driver.client.Driver
 import com.intellij.driver.sdk.ui.components.common.ideFrame
 import com.intellij.driver.sdk.ui.components.elements.popupMenu
@@ -8,10 +9,12 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+/** Provides resilient interactions with IDE popup menus. */
 internal class PopupDriver(
     private val driver: Driver,
     private val log: (String) -> Unit = ::logPopupCheckpoint,
 ) {
+    /** Selects a popup item using speed search. */
     fun selectBySpeedSearch(itemText: String) {
         driver.ideFrame {
             keyboard {
@@ -21,6 +24,7 @@ internal class PopupDriver(
         }
     }
 
+    /** Waits until a popup containing [expectedText] appears. */
     fun containsText(expectedText: String, timeout: Duration = 3.seconds): Boolean {
         log("Waiting for popup text '$expectedText'")
         return pollUntil(timeout, 250.milliseconds) {
@@ -32,6 +36,7 @@ internal class PopupDriver(
         }
     }
 
+    /** Opens [text] and verifies that its submenu contains [expectedChildText]. */
     fun openSubmenu(text: String, expectedChildText: String): Boolean {
         log("Finding menu item '$text'")
         val item = driver.ui.popupMenu().findMenuItemByText(text)
@@ -55,12 +60,14 @@ internal class PopupDriver(
         return containsText(expectedChildText, 2.seconds)
     }
 
+    /** Returns the visible popup item labels, or an empty list when no popup is available. */
     fun items(): List<String> = try {
         driver.ui.popupMenu().itemsList()
     } catch (_: Throwable) {
         emptyList()
     }
 
+    /** Closes the current popup when one is present. */
     fun closeIfPresent() {
         try {
             log("Closing popup")
@@ -96,6 +103,7 @@ internal class PopupDriver(
     }
 }
 
+/** Creates a popup driver bound to this IDE driver. */
 internal fun Driver.popupDriver(): PopupDriver = PopupDriver(this)
 
 private fun logPopupCheckpoint(message: String) {

@@ -1,12 +1,14 @@
-package com.alexey_anufriev.scopes_manager
+package com.alexey_anufriev.scopes_manager.support
 
 import kotlin.time.Duration
 
+/** Captures whether polling succeeded and the last transient error encountered. */
 internal data class PollResult(
     val succeeded: Boolean,
     val lastError: Throwable?,
 )
 
+/** Repeatedly evaluates [condition] until it succeeds or [timeout] elapses. */
 internal fun pollUntil(
     timeout: Duration,
     interval: Duration,
@@ -29,6 +31,7 @@ internal fun pollUntil(
     return PollResult(succeeded = false, lastError = lastError)
 }
 
+/** Waits for [condition] and throws an assertion error describing the timeout. */
 internal fun waitUntil(
     description: String,
     timeout: Duration,
