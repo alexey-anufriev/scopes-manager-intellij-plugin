@@ -132,11 +132,17 @@ abstract class IdeIntegrationTestSupport {
     }
 
     private fun shouldIgnoreKnownIdeFailure(product: IdeProduct, message: String, details: String): Boolean {
+        val ideFailureText = listOf(message, details)
+        val knownPlatformIssues = listOf(
+            "Theme Islands Dark refers to unknown color scheme Islands Dark",
+        )
+        if (knownPlatformIssues.any { issue -> ideFailureText.any { it.contains(issue) } }) {
+            return true
+        }
+
         if (product != IdeProduct.RIDER) {
             return false
         }
-
-        val ideFailureText = listOf(message, details)
 
         val knownRiderIssues = listOf(
             "LicensingFacade is null",
