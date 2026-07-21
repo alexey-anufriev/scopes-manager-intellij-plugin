@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Fetch Sources
-      uses: actions/checkout@v7.0.0
+      uses: actions/checkout@v7.0.1
 
     - name: Gradle Wrapper Validation
       uses: gradle/actions/wrapper-validation@v6
