@@ -125,8 +125,8 @@ uiIntegrationTests {
         releaseTaskName = "integrationTestRiderLatest",
         eapTaskName = "integrationTestRiderLatestEap",
         testProjectPath = "src/integrationTest/resources/test-projects/rider-project",
-        sampleFileNames = "Program.cs",
-        samplePath = "App/Program.cs",
+        sampleFileNames = "App",
+        samplePath = "App",
     )
     product(
         displayName = "RubyMine",

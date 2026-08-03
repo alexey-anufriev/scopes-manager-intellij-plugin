@@ -135,6 +135,7 @@ abstract class IdeIntegrationTestSupport {
         val ideFailureText = listOf(message, details)
         val knownPlatformIssues = listOf(
             "Theme Islands Dark refers to unknown color scheme Islands Dark",
+            "Can't find bundle for base name messages.JavaCoverageBundle",
         )
         if (knownPlatformIssues.any { issue -> ideFailureText.any { it.contains(issue) } }) {
             return true
