@@ -121,7 +121,7 @@ jobs:
 
     - name: Free Runner Disk Space
       if: ${{ matrix.containerized == true || matrix.name == 'plugin-verifier' }}
-      uses: jlumbroso/free-disk-space@v1.3.1
+      uses: jlumbroso/free-disk-space@v2.0.0
       with:
         tool-cache: true
 
