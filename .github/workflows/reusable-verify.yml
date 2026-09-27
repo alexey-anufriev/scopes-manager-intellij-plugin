@@ -123,7 +123,8 @@ jobs:
       if: ${{ matrix.containerized == true || matrix.name == 'plugin-verifier' }}
       uses: jlumbroso/free-disk-space@v2.0.0
       with:
-        tool-cache: true
+        preinstalled-runtimes: true
+        swap-storage: true
 
     - name: Setup Java
       uses: actions/setup-java@v6.0.1
