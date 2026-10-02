@@ -222,15 +222,16 @@ jobs:
 
         max_attempts=1
         if [ "${{ matrix.containerized }}" = "true" ]; then
-          max_attempts=2
+          max_attempts=3
         fi
 
         attempt=1
         while [ "$attempt" -le "$max_attempts" ]; do
           echo "verification_attempt=$attempt/$max_attempts" | tee -a "$LOG_FILE"
+          ATTEMPT_LOG="$GITHUB_WORKSPACE/.ci/verify-logs/${{ matrix.artifact_suffix }}-attempt-$attempt.log"
 
           set +e
-          run_verification_command 2>&1 | tee -a "$LOG_FILE"
+          run_verification_command 2>&1 | tee "$ATTEMPT_LOG" | tee -a "$LOG_FILE"
           command_status=${PIPESTATUS[0]}
           set -e
 
@@ -242,8 +243,18 @@ jobs:
             exit "$command_status"
           fi
 
-          echo "Verification attempt $attempt failed with exit code $command_status; retrying in 90 seconds." | tee -a "$LOG_FILE"
-          sleep 90
+          retry_delay=90
+          if [ "$attempt" -eq 2 ]; then
+            # Only dependency resolution failures qualify for the delayed retry.
+            DEPENDENCY_FAILURES='Could not find [^[:space:]]+:[^[:space:]]+:[^[:space:]]+|Could not (GET|HEAD|get resource) .?https?://'
+            if ! sed -n '/^\* What went wrong:/,/^\* Try:/p' "$ATTEMPT_LOG" | grep -Eq "$DEPENDENCY_FAILURES"; then
+              exit "$command_status"
+            fi
+            retry_delay=3600
+          fi
+
+          echo "Verification attempt $attempt failed with exit code $command_status; retrying in $retry_delay seconds." | tee -a "$LOG_FILE"
+          sleep "$retry_delay"
           attempt=$((attempt + 1))
         done
 
