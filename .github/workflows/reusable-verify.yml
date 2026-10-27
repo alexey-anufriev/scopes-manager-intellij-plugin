@@ -247,7 +247,7 @@ jobs:
           if [ "$attempt" -eq 2 ]; then
             # Only dependency resolution failures qualify for the delayed retry.
             DEPENDENCY_FAILURES='Could not find [^[:space:]]+:[^[:space:]]+:[^[:space:]]+|Could not (GET|HEAD|get resource) .?https?://'
-            if ! sed -n '/^\* What went wrong:/,/^\* Try:/p' "$ATTEMPT_LOG" | grep -Eq "$DEPENDENCY_FAILURES"; then
+            if ! sed -n '/^\* What went wrong:/,/^\* Try:/p' "$ATTEMPT_LOG" | grep -E "$DEPENDENCY_FAILURES" >/dev/null; then
               exit "$command_status"
             fi
             retry_delay=3600
